@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import URL, text
-
+from sqlalchemy.exc import IntegrityError, OperationalError
 
 # Load the database settings from .env
 load_dotenv()
@@ -35,11 +35,15 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 # Set up SQLAlchemy for this Flask app
 db = SQLAlchemy(app)
 
-# Check that it can connect when the app starts
-with app.app_context():
-    with db.engine.connect() as connection:
-        result = connection.execute(text("SELECT DATABASE();"))
-        print("Connected to database:", result.scalar())
+# Check that it can connect when the app starts, and prevent crash if connection times out
+try:
+    with app.app_context():
+        with db.engine.connect() as connection:
+            result = connection.execute(text("SELECT DATABASE();"))
+            print("Connected to database:", result.scalar())
+
+except OperationalError:
+    raise SystemExit("Database connection failed. Stopping app.")
 
 # -----------------------------------
 # ----------DATABASE MODELS----------
@@ -92,3 +96,47 @@ def employees():
     ).scalars().all()
 
     return render_template("employees.html", employees=employee_list)
+
+@app.route("/employees/add", methods=["GET", "POST"])
+def add_employee():
+    error = None
+
+    if request.method == "POST":
+        # Read the submitted values and remove extra spaces
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip()
+        phone = request.form.get("phone_number", "").strip()
+        job_title = request.form.get("job_title", "").strip()
+
+        # Make sure the required fields contain text
+        if not name or not email or not job_title:
+            error = "Name, email, and job title are required."
+
+        else:
+            # Build an employee record from the form values
+            employee = Employee(
+                name=name,
+                email=email,
+                phone_number=phone or None,
+                job_title=job_title,
+                active=True,
+                admin=False,
+                password_hash=None
+            )
+
+            try:
+                # Save the new employee to the database
+                db.session.add(employee)
+                db.session.commit()
+
+            except IntegrityError:
+                # Reset the session when MySQL rejects the insert
+                db.session.rollback()
+                error = "Could not save. That email may already be in use."
+
+            else:
+                # Reload the employee list after a successful save
+                return redirect(url_for("employees"))
+
+    # Display the form, including an error if saving failed
+    return render_template("add_employee.html", error=error)
