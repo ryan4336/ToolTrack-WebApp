@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{% block title %}ToolTrack{% endblock %}</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <a class="logo" href="{{ url_for('dashboard') }}">
+                ToolTrack
+            </a>
+
+            <div class="nav-links">
+                <button type="button" disabled>Tool Inventory</button>
+                <button type="button" disabled>Employees</button>
+            </div>
+
+            <div class="account-links">
+                <button type="button" disabled>Change Password</button>
+                <button type="button" disabled>Log Out</button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="page-content">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

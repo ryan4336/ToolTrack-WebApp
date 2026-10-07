@@ -1,0 +1,178 @@
+/* Shared colors based on Hulett Heating website */
+:root {
+    --hulett-red: #ad080d;
+    --hulett-charcoal: #222222;
+    --text-dark: #151515;
+    --text-light: #ffffff;
+}
+
+/* Include padding and borders in each element's size */
+* {
+    box-sizing: border-box;
+}
+
+/* ---------------- DASHBOARD STYLING ---------------- 
+----------------------------------------------------------
+----------------------------------------------------------*/
+
+/* white page with simple typography like company website */
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--text-dark);
+    background-color: #ffffff;
+}
+
+/* logo, page navigation, and account controls in a row */
+.navbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 32px;
+    min-height: 90px;
+    padding: 18px 36px;
+    background-color: var(--hulett-charcoal);
+
+    /* red accent */
+    border-bottom: 4px solid var(--hulett-red);
+}
+
+/* Substitute until ToolTrack logo image is decided */
+.logo {
+    color: var(--text-light);
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-decoration: none;
+}
+
+/* Keep navigation links together */
+.nav-links,
+.account-links {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+/* keep password and logout controls on the right side */
+.account-links {
+    margin-left: auto;
+}
+
+/* simple text navigation instead of outlined boxes;
+   transparent borders keep room for hover indicators */
+.navbar button,
+.nav-links a,
+.account-links a {
+    display: inline-block;
+    padding: 10px 4px;
+    border: none;
+    border-top: 1px solid transparent;
+    border-bottom: 1px solid transparent;
+    background-color: transparent;
+    color: var(--text-light);
+    font: inherit;
+    font-size: 16px;
+    line-height: 1.4;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Match the thin lines around "Home" on the company website */
+.navbar button:hover,
+.nav-links a:hover,
+.account-links a:hover {
+    border-top-color: var(--text-light);
+    border-bottom-color: var(--text-light);
+}
+
+/* Provide space for dashboard content when we add it later */
+.page-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 32px;
+}
+
+
+/* ---------------- LOGIN PAGE ---------------- 
+------------------------------------------------
+------------------------------------------------*/
+
+/* Center the login card on a charcoal background */
+.login-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 24px;
+    background-color: var(--hulett-charcoal);
+}
+
+/* Keep the form readable */
+.login-card {
+    width: 100%;
+    max-width: 420px;
+    padding: 40px 32px;
+    border-top: 5px solid var(--hulett-red);
+    border-radius: 8px;
+    background-color: #ffffff;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+/* Style the application name and subtext */
+.login-card h1 {
+    margin: 0 0 10px;
+    text-align: center;
+    font-size: 32px;
+}
+
+.login-subtitle {
+    margin: 0 0 28px;
+    color: #555555;
+    text-align: center;
+}
+
+/* Separate each label and input from the next field */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+/* Make inputs fields fill the available width inside the card */
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #aaaaaa;
+    border-radius: 4px;
+    font: inherit;
+}
+
+/* Highlight the field currently being edited */
+.form-group input:focus {
+    outline: 2px solid var(--hulett-red);
+    outline-offset: 2px;
+}
+
+/* Match the red action buttons on the company website */
+.login-button {
+    width: 100%;
+    padding: 13px;
+    border: none;
+    border-radius: 5px;
+    background-color: var(--hulett-red);
+    color: #ffffff;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.login-button:hover {
+    background-color: #89060a;
+}
