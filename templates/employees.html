@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Employees | ToolTrack{% endblock %}
+
+{% block content %}
+    <h1>Employees</h1>
+
+    <!-- Show a table when employee records exist -->
+    {% if employees %}
+        <table>
+            <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Phone</th>
+                    <th scope="col">Job Title</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Admin</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <!-- Create one table row for each employee -->
+                {% for employee in employees %}
+                    <tr>
+                        <td>{{ employee.name }}</td>
+                        <td>{{ employee.email }}</td>
+
+                        <!-- Display a dash when no phone number is saved -->
+                        <td>{{ employee.phone_number or "—" }}</td>
+
+                        <td>{{ employee.job_title }}</td>
+                        <td>{{ "Active" if employee.active else "Deactivated" }}</td>
+                        <td>{{ "Yes" if employee.admin else "No" }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <!-- An empty database should show a message -->
+        <p>No employees have been added yet.</p>
+    {% endif %}
+{% endblock %}

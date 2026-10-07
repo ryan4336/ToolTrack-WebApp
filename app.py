@@ -82,3 +82,13 @@ def login():
 @app.route("/dashboard")
 def dashboard():
     return render_template("dashboard.html")
+
+
+# Read all employees and display them alphabetically by name.
+@app.route("/employees")
+def employees():
+    employee_list = db.session.execute(
+        db.select(Employee).order_by(Employee.name)
+    ).scalars().all()
+
+    return render_template("employees.html", employees=employee_list)
