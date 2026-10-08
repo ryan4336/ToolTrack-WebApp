@@ -98,7 +98,7 @@ def login():
             return redirect(url_for('dashboard'))
         else:
             flash('Invalid credentials. Please try again.', 'error')
-            return render_template('login')
+            return render_template('login.html')
         
     return render_template('login.html')
 
