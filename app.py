@@ -140,3 +140,6 @@ def add_employee():
 
     # Display the form, including an error if saving failed
     return render_template("add_employee.html", error=error)
+
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=5001, debug=True)
