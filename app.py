@@ -12,6 +12,9 @@ load_dotenv()
 # Create the Flask website
 app = Flask(__name__)
 
+#allow the application to update while the server is running
+app.config["DEBUG"] = True
+
 app.config['SECRET_KEY'] = os.environ["SECRET_KEY"]
 
 # Tell SQLAlchemy which database to connect to
