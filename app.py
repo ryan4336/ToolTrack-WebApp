@@ -12,7 +12,7 @@ load_dotenv()
 # Create the Flask website
 app = Flask(__name__)
 
-app.secret_key = os.getenv("SECRET_KEY")
+app.config['SECRET_KEY'] = os.environ["SECRET_KEY"]
 
 # Tell SQLAlchemy which database to connect to
 # URL.create handles special characters in the password correctly
