@@ -3,41 +3,50 @@
 {% block title %}Employees | ToolTrack{% endblock %}
 
 {% block content %}
+
+<div class="employees-header">
     <h1>Employees</h1>
-    <a href="{{ url_for('add_employee') }}">Add Employee</a>
-    <!-- Show a table when employee records exist -->
-    {% if employees %}
-        <table>
-            <thead>
-                <tr>
-                    <th scope="col">Name</th>
-                    <th scope="col">Email</th>
-                    <th scope="col">Phone</th>
-                    <th scope="col">Job Title</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Admin</th>
-                </tr>
-            </thead>
 
-            <tbody>
-                <!-- Create one table row for each employee -->
-                {% for employee in employees %}
-                    <tr>
-                        <td>{{ employee.name }}</td>
-                        <td>{{ employee.email }}</td>
+    <a href="{{ url_for('add_employee') }}" class="add-employee-button">
+        Add Employee
+    </a>
+</div>
 
-                        <!-- Display a dash when no phone number is saved -->
-                        <td>{{ employee.phone_number or "—" }}</td>
+{% if employees %}
+<!-- Allow horizontal scrolling if the table exceeds the available space -->
+<div class="employee-table-wrapper">
+    <table class="employee-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Job Title</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
 
-                        <td>{{ employee.job_title }}</td>
-                        <td>{{ "Active" if employee.active else "Deactivated" }}</td>
-                        <td>{{ "Yes" if employee.admin else "No" }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <!-- An empty database should show a message -->
-        <p>No employees have been added yet.</p>
-    {% endif %}
+        <tbody>
+            <!-- Create one table row for each employee from the database -->
+            {% for employee in employees %}
+            <tr>
+                <td>{{ employee.name }}</td>
+                <td>{{ employee.email }}</td>
+                <td>{{ employee.phone_number or "—" }}</td>
+                <td>{{ employee.job_title }}</td>
+                <td>{{ "Active" if employee.active else "Inactive" }}</td>
+                <td>
+                    <button type="button" class="edit-employee-button">
+                        Edit
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p>No employees have been added yet.</p>
+{% endif %}
 {% endblock %}
