@@ -262,20 +262,22 @@ body {
     font-size: 14px;
 }
 
-.login-failed {
+.div-container {
     position: relative;
 }
 
 .flash {
+    position: absolute;
+    top: 15px;
+    left: 0;
     width: 100%;
-    flex-basis: 100%;
-    flex-shrink: 0;
     box-sizing: border-box;
+
     background-color: #ffe5e5;
     color: red;
     border: 1px solid red;
     padding: 12px;
-    margin-bottom: 15px;
     text-align: center;
     font-weight: bold;
+    z-index: 10;
 }
