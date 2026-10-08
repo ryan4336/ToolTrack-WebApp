@@ -1,7 +1,7 @@
 import os
 
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import URL, text
 from sqlalchemy.exc import IntegrityError, OperationalError
@@ -11,6 +11,11 @@ load_dotenv()
 
 # Create the Flask website
 app = Flask(__name__)
+
+#allow the application to update while the server is running
+app.config["DEBUG"] = True
+
+app.config['SECRET_KEY'] = os.environ["SECRET_KEY"]
 
 # Tell SQLAlchemy which database to connect to
 # URL.create handles special characters in the password correctly
@@ -76,10 +81,25 @@ class Employee(db.Model):
 def login():
     # Temporarily send every submitted login directly to the dashboard
     # Authentication will be added later
-    if request.method == "POST":
-        return redirect(url_for("dashboard"))
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+    
+        mydb = db.engine.raw_connection() # Connect to database using sqlalchemy
+        cursor = mydb.cursor()
+        query = "SELECT * FROM employee WHERE email = %s AND password_hash = %s AND admin = True ;"
+        cursor.execute(query, (username, password))
+        admin = cursor.fetchone()
 
-    return render_template("login.html")
+        mydb.close()
+        if admin: 
+            flash('Login successful!', 'success')
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Invalid credentials. Please try again.', 'error')
+            return render_template('login.html')
+        
+    return render_template('login.html')
 
 
 # Display the dashboard page
