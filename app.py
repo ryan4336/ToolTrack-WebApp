@@ -12,6 +12,12 @@ load_dotenv()
 # Create the Flask website
 app = Flask(__name__)
 
+#allow the application to update while the server is running
+app.config["DEBUG"] = True
+
+#flash the secret key to secure sessions
+app.config['SECRET_KEY'] = 'your secret key'
+
 # Tell SQLAlchemy which database to connect to
 # URL.create handles special characters in the password correctly
 app.config["SQLALCHEMY_DATABASE_URI"] = URL.create(
