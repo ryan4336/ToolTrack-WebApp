@@ -82,7 +82,7 @@ def login():
     
         mydb = db.engine.raw_connection() # Connect to database using sqlalchemy
         cursor = mydb.cursor()
-        query = "SELECT * FROM employee WHERE email = ? AND password_hash = ? AND admin = True ;"
+        query = "SELECT * FROM employee WHERE email = %s AND password_hash = %s AND admin = True ;"
         cursor.execute(query, (username, password))
         admin = cursor.fetchone()
 
