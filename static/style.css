@@ -300,7 +300,8 @@ body {
 /* Give inputs, dropdowns, and text areas the same appearance */
 .form-group input,
 .form-group select,
-.form-group textarea {
+.form-group textarea,
+.search-controls input {
     width: 100%;
     padding: 12px;
     border: 1px solid #aaaaaa;
@@ -329,4 +330,35 @@ body {
 /* Display form validation errors in red */
 .form-error {
     color: var(--hulett-red);
+}
+
+/* ---------------- SHARED SEARCH --------------- */
+/* ---------------------------------------------- */
+/* ---------------------------------------------- */
+
+/* Separate the search area from the other page content */
+.search-form {
+    margin-bottom: 24px;
+}
+
+.search-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+/* Keep the search field and buttons in a row */
+.search-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.search-controls input {
+    flex: 1;
+    min-width: 0;
+}
+
+.search-controls .button {
+    flex-shrink: 0;
 }

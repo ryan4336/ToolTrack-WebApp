@@ -11,6 +11,16 @@
         Add Employee
     </a>
 </div>
+<!-- Search bar; Use JavaScript to filter the employee rows as the user types -->
+<div class="search-form">
+    <label for="employee-search">Search employees</label>
+
+    <div class="search-controls">
+        <input type="search"
+               id="employee-search"
+               placeholder="Name, email, phone, job title, or status">
+    </div>
+</div>
 
 {% if employees %}
 <!-- Allow horizontal scrolling if the table exceeds the available space -->
@@ -29,8 +39,16 @@
 
         <tbody>
             <!-- Create one table row for each employee from the database -->
+            <!-- Store each employee's information in data-search so JS script can filter the row -->
             {% for employee in employees %}
-            <tr>
+            <tr class="employee-row"
+                data-search="
+                {{ employee.employee_id }} 
+                {{ employee.name }} 
+                {{ employee.email }} 
+                {{ employee.phone_number or '' }} 
+                {{ employee.job_title }}">
+
                 <td>{{ employee.name }}
                     <!-- Display indicator for admins -->
                     {% if employee.admin %}
@@ -54,7 +72,10 @@
         </tbody>
     </table>
 </div>
+<!-- JavaScript shows this only when no rows match the search -->
+<p id="no-search-results" hidden>No employees match your search.</p>
 {% else %}
-<p>No employees have been added yet.</p>
+    <p>No employees have been added yet.</p>
 {% endif %}
+<script src="{{ url_for('static', filename='employees.js') }}" defer></script>
 {% endblock %}
