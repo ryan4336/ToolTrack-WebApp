@@ -352,8 +352,8 @@ body {
 .search-controls {
     display: flex;
     align-items: center;
-    gap: 12px;
-    width: 25%;
+    gap: 24px;
+    width: 50%;
 }
 
 .search-controls input {
@@ -363,4 +363,36 @@ body {
 
 .search-controls .button {
     flex-shrink: 0;
+}
+
+/* Keep the filter label and dropdown aligned in a row */
+.dropdown-filter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+/* Override the margin used for labels above search fields */
+.dropdown-filter label {
+    margin: 0;
+}
+
+/* Shared appearance for filter dropdowns */
+.dropdown-filter select {
+    width: auto;
+    min-width: 120px;
+    padding: 10px 12px;
+    border: 1px solid #aaaaaa;
+    border-radius: 4px;
+    background-color: #ffffff;
+    color: var(--text-dark);
+    font: inherit;
+    cursor: pointer;
+}
+
+/* Highlight the dropdown when selected */
+.dropdown-filter select:focus {
+    outline: 2px solid var(--hulett-red);
+    outline-offset: 2px;
 }
