@@ -3,14 +3,14 @@
 {% block title %}Add Employee | ToolTrack{% endblock %}
 
 {% block content %}
-    <h1>Add Employee</h1>
+    <h1 class="form-title">Add Employee</h1>
 
     <!-- Show an error if required information is missing or saving fails -->
     {% if error %}
         <p>{{ error }}</p>
     {% endif %}
 
-    <form method="POST" action="{{ url_for('add_employee') }}">
+    <form method="POST" class="form"action="{{ url_for('add_employee') }}">
 
         <!-- Keep entered values if the form needs to be corrected -->
         <div class="form-group">
@@ -60,8 +60,9 @@
             >
         </div>
 
-        <!-- Save the employee or return to the list without saving -->
-        <button type="submit">Create Employee</button>
-        <a href="{{ url_for('employees') }}">Cancel</a>
+        <div class="form-actions">
+            <button type="submit" class="button">Save Changes</button>
+            <a href="{{ url_for('employees') }}">Cancel</a>
+        </div>
     </form>
 {% endblock %}

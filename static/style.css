@@ -11,19 +11,9 @@
     box-sizing: border-box;
 }
 
-/* ---------------- DASHBOARD STYLING ---------------- 
-----------------------------------------------------------
-----------------------------------------------------------*/
-
-/* white page with simple typography like company website */
-body {
-    margin: 0;
-    min-height: 100vh;
-    font-family: Arial, Helvetica, sans-serif;
-    color: var(--text-dark);
-    background-color: #ffffff;
-}
-
+/* ------------------- NAVBAR --------------------
+--------------------------------------------------
+--------------------------------------------------*/
 /* logo, page navigation, and account controls in a row */
 .navbar {
     display: flex;
@@ -88,6 +78,19 @@ body {
     border-bottom-color: var(--text-light);
 }
 
+/* ---------------- DASHBOARD STYLING --------------------
+----------------------------------------------------------
+----------------------------------------------------------*/
+
+/* white page with simple typography like company website */
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--text-dark);
+    background-color: #ffffff;
+}
+
 /* Provide space for dashboard content when we add it later */
 .page-content {
     max-width: 1400px;
@@ -134,52 +137,7 @@ body {
     text-align: center;
 }
 
-/* Separate each label and input from the next field */
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-}
-
-/* Make inputs fields fill the available width inside the card */
-.form-group input, 
-.form-group select {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #aaaaaa;
-    border-radius: 4px;
-    font: inherit;
-}
-
-/* Highlight the field currently being edited */
-.form-group input:focus,
-.form-group select:focus {
-    outline: 2px solid var(--hulett-red);
-    outline-offset: 2px;
-}
-
-/* Match the red action buttons on the company website */
-.login-button {
-    width: 100%;
-    padding: 13px;
-    border: none;
-    border-radius: 5px;
-    background-color: var(--hulett-red);
-    color: #ffffff;
-    font: inherit;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.login-button:hover {
-    background-color: #89060a;
-}
-
-/* ---------------- EMPLOYEE PAGE ---------------- 
+/* ---------------- EMPLOYEE LIST PAGE ---------------- 
 ------------------------------------------------
 ------------------------------------------------*/
 
@@ -194,26 +152,6 @@ body {
 
 .employees-header h1 {
     margin: 0;
-}
-
-/* Use the company red for the employee buttons */
-.add-employee-button,
-.edit-employee-button {
-    display: inline-block;
-    background-color: #ad080d;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 10px 16px;
-    font: inherit;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-/* Darken the buttons when the mouse is over them */
-.add-employee-button:hover,
-.edit-employee-button:hover {
-    background-color: #87060a;
 }
 
 /* Add a border around the table and allow scrolling left and right if table shrinks */
@@ -239,8 +177,8 @@ body {
 
 /* Match the dark navigation bar */
 .employee-table thead {
-    background-color: #222222;
-    color: white;
+    background-color: var(--hulett-charcoal);
+    color: var(--text-light);
 }
 
 /* Alternate row colors to make the list easier to read */
@@ -258,11 +196,6 @@ body {
     border-bottom: none;
 }
 
-/* Keep the Edit buttons smaller than the Add Employee button */
-.edit-employee-button {
-    padding: 7px 14px;
-    font-size: 14px;
-}
 
 .div-container {
     position: relative;
@@ -273,7 +206,6 @@ body {
     top: 15px;
     left: 0;
     width: 100%;
-    box-sizing: border-box;
 
     background-color: #ffe5e5;
     color: red;
@@ -283,18 +215,94 @@ body {
     font-weight: bold;
     z-index: 10;
 }
-/* ---------------- EMPLOYEE EDIT FORM ---------------- 
-------------------------------------------------
-------------------------------------------------*/
 
-/* Limit the edit form's width */
-.employee-edit-form {
-    max-width: 500px;
+/* ---------------- SHARED BUTTONS ---------------- */
+/* ------------------------------------------------ */
+/* ------------------------------------------------ */
+
+/* Use this class for action buttons and links styled as buttons */
+.button {
+    display: inline-block;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 4px;
+    background-color: var(--hulett-red);
+    color: var(--text-light);
+    font: inherit;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
 }
 
-/* Separate Save Changes from the Cancel link */
-.employee-edit-form button {
-    margin-right: 12px;
+.button:hover {
+    background-color: #87060a;
+}
+
+/* Add this class for smaller buttons inside tables */
+.button-small {
+    padding: 7px 14px;
+    font-size: 14px;
+}
+
+/* Add this class when a button should fill its container */
+.button-full {
+    width: 100%;
+}
+
+/* ---------------- SHARED FORMS ---------------- */
+/* ---------------------------------------------- */
+/* ---------------------------------------------- */
+
+/* Give standard forms a consistent width */
+.form {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+/* Center the heading above the form */
+.form-title {
+    text-align: center;
+}
+
+/* Separate each field from the next one */
+.form-group {
+    margin-bottom: 20px;
+}
+
+/* Place labels above their fields */
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+/* Give inputs, dropdowns, and text areas the same appearance */
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #aaaaaa;
+    border-radius: 4px;
+    background-color: #ffffff;
+    color: var(--text-dark);
+    font: inherit;
+}
+
+/* Highlight the field currently being edited */
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: 2px solid var(--hulett-red);
+    outline-offset: 2px;
+}
+
+/* Place the submit button and Cancel link beside each other */
+.form-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 /* Display form validation errors in red */

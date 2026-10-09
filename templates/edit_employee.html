@@ -3,7 +3,7 @@
 {% block title %}Edit Employee | ToolTrack{% endblock %}
 
 {% block content %}
-<h1>Edit Employee</h1>
+<h1 class="form-title">Edit Employee</h1>
 
 <!-- Display a message if the submitted information cannot be saved -->
 {% if error %}
@@ -11,7 +11,7 @@
 {% endif %}
 
 <!-- Submit the form back to the employee's edit route -->
-<form method="POST" class="employee-edit-form">
+<form method="POST" class="form">
 
     <div class="form-group">
         <label for="name">Name</label>
@@ -68,7 +68,9 @@
         </select>
     </div>
 
-    <button type="submit" class="edit-employee-button">Save Changes</button>
-    <a href="{{ url_for('employees') }}">Cancel</a>
+    <div class="form-actions">
+        <button type="submit" class="button">Save Changes</button>
+        <a href="{{ url_for('employees') }}">Cancel</a>
+    </div>
 </form>
 {% endblock %}
