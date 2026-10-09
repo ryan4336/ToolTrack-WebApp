@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Employee | ToolTrack{% endblock %}
+
+{% block content %}
+<h1>Edit Employee</h1>
+
+<!-- Display a message if the submitted information cannot be saved -->
+{% if error %}
+    <p class="form-error">{{ error }}</p>
+{% endif %}
+
+<!-- Submit the form back to the employee's edit route -->
+<form method="POST" class="employee-edit-form">
+
+    <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name"
+               value="{{ request.form.get('name', employee.name) }}"
+               maxlength="150" required>
+    </div>
+
+    <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email"
+               value="{{ request.form.get('email', employee.email) }}"
+               maxlength="254" required>
+    </div>
+
+    <div class="form-group">
+        <label for="phone_number">Phone Number</label>
+        <input type="tel" id="phone_number" name="phone_number"
+               value="{{ request.form.get('phone_number', employee.phone_number or '') }}"
+               maxlength="30">
+    </div>
+
+    <div class="form-group">
+        <label for="job_title">Job Title</label>
+        <input type="text" id="job_title" name="job_title"
+               value="{{ request.form.get('job_title', employee.job_title) }}"
+               maxlength="100" required>
+    </div>
+
+    <!-- Select the employee's current admin status when opening the form -->
+    <div class="form-group">
+        <label for="admin">Admin</label>
+        {% set admin_value = request.form.get('admin', '1' if employee.admin else '0') %}
+        <select id="admin" name="admin">
+            <option value="0" {% if admin_value == '0' %}selected{% endif %}>
+                No
+            </option>
+            <option value="1" {% if admin_value == '1' %}selected{% endif %}>
+                Yes
+            </option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="active">Employment Status</label>
+        {% set active_value = request.form.get('active', '1' if employee.active else '0') %}
+        <select id="active" name="active">
+            <option value="1" {% if active_value == '1' %}selected{% endif %}>
+                Active
+            </option>
+            <option value="0" {% if active_value == '0' %}selected{% endif %}>
+                Inactive
+            </option>
+        </select>
+    </div>
+
+    <button type="submit" class="edit-employee-button">Save Changes</button>
+    <a href="{{ url_for('employees') }}">Cancel</a>
+</form>
+{% endblock %}

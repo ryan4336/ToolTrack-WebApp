@@ -161,5 +161,50 @@ def add_employee():
     # Display the form, including an error if saving failed
     return render_template("add_employee.html", error=error)
 
+@app.route("/employees/<int:employee_id>/edit", methods=["GET", "POST"])
+def edit_employee(employee_id):
+    # Find the employee, or show a 404 page if the ID does not exist
+    employee = db.get_or_404(Employee, employee_id)
+    error = None
+
+    if request.method == "POST":
+        # Read the submitted values and strip extra spaces
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip()
+        phone = request.form.get("phone_number", "").strip()
+        job_title = request.form.get("job_title", "").strip()
+
+        # Convert the dropdown values into booleans
+        admin = request.form.get("admin") == "1"
+        active = request.form.get("active") == "1"
+
+        if not name or not email or not job_title:
+            error = "Name, email, and job title are required."
+        else:
+            # Update the existing employee
+            employee.name = name
+            employee.email = email
+            employee.phone_number = phone or None
+            employee.job_title = job_title
+            employee.admin = admin
+            employee.active = active
+
+            try:
+                # Save the changes to the db
+                db.session.commit()
+            except IntegrityError:
+                # Undo the attempted changes if db rejects them
+                db.session.rollback()
+                error = "Could not save. That email may already be in use."
+            else:
+                return redirect(url_for("employees"))
+
+    # Show the form when first opened and when saving fails
+    return render_template(
+        "edit_employee.html",
+        employee=employee,
+        error=error
+    )
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5001, debug=True)
