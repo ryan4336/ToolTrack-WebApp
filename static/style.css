@@ -330,6 +330,7 @@ body {
 /* Display form validation errors in red */
 .form-error {
     color: var(--hulett-red);
+    text-align: center;
 }
 
 /* ---------------- SHARED SEARCH --------------- */
@@ -352,6 +353,7 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
+    width: 25%;
 }
 
 .search-controls input {

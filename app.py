@@ -75,6 +75,28 @@ class Employee(db.Model):
     admin = db.Column(db.Boolean, nullable=False, default=False)
 
 
+# -----------------------------------
+# ----------HELPER FUNCTIONS---------
+# -----------------------------------
+
+
+# Validate phone number and place dashes between numbers if they aren't there
+def format_phone(phone):
+    if not phone:
+        return None
+
+    # Reject anything other than digits and dashes
+    if any(character not in "0123456789-" for character in phone):
+        raise ValueError("Phone number can only contain digits and dashes.")
+
+    digits = phone.replace("-", "")
+
+    if len(digits) != 10:
+        raise ValueError("Phone number must contain exactly 10 digits.")
+
+    return f"{digits[:3]}-{digits[3:6]}-{digits[6:]}"
+
+
 # Show the login page when someone first opens the website
 @app.route("/", methods=["GET", "POST"])
 @app.route("/login", methods=["GET", "POST"])
@@ -131,32 +153,37 @@ def add_employee():
         # Make sure the required fields contain text
         if not name or not email or not job_title:
             error = "Name, email, and job title are required."
-
         else:
-            # Build an employee record from the form values
-            employee = Employee(
-                name=name,
-                email=email,
-                phone_number=phone or None,
-                job_title=job_title,
-                active=True,
-                admin=False,
-                password_hash=None
-            )
-
             try:
-                # Save the new employee to the database
-                db.session.add(employee)
-                db.session.commit()
-
-            except IntegrityError:
-                # Reset the session when MySQL rejects the insert
-                db.session.rollback()
-                error = "Could not save. That email may already be in use."
-
+                # Validate the phone number and add consistent dashes
+                phone = format_phone(phone)
+            except ValueError as message:
+                # Display the helper funtion's error on the form
+                error = str(message)
             else:
-                # Reload the employee list after a successful save
-                return redirect(url_for("employees"))
+                # Build an employee record from the form values
+                employee = Employee(
+                    name=name,
+                    email=email,
+                    phone_number=phone or None,
+                    job_title=job_title,
+                    active=True,
+                    admin=False,
+                    password_hash=None
+                )
+                try:
+                    # Save the new employee to the database
+                    db.session.add(employee)
+                    db.session.commit()
+
+                except IntegrityError:
+                    # Reset the session when MySQL rejects the insert
+                    db.session.rollback()
+                    error = "Could not save. That email may already be in use."
+
+                else:
+                    # Reload the employee list after a successful save
+                    return redirect(url_for("employees"))
 
     # Display the form, including an error if saving failed
     return render_template("add_employee.html", error=error)
@@ -181,23 +208,29 @@ def edit_employee(employee_id):
         if not name or not email or not job_title:
             error = "Name, email, and job title are required."
         else:
-            # Update the existing employee
-            employee.name = name
-            employee.email = email
-            employee.phone_number = phone or None
-            employee.job_title = job_title
-            employee.admin = admin
-            employee.active = active
-
             try:
-                # Save the changes to the db
-                db.session.commit()
-            except IntegrityError:
-                # Undo the attempted changes if db rejects them
-                db.session.rollback()
-                error = "Could not save. That email may already be in use."
+                # Validate the phone number and add consistent dashes
+                phone = format_phone(phone)
+            except ValueError as message:
+                # Display the helper function's error on the form
+                error = str(message)
             else:
-                return redirect(url_for("employees"))
+                # Update the existing employee
+                employee.name = name
+                employee.email = email
+                employee.phone_number = phone or None
+                employee.job_title = job_title
+                employee.admin = admin
+                employee.active = active
+                try:
+                    # Save the changes to the db
+                    db.session.commit()
+                except IntegrityError:
+                    # Undo the attempted changes if db rejects them
+                    db.session.rollback()
+                    error = "Could not save. That email may already be in use."
+                else:
+                    return redirect(url_for("employees"))
 
     # Show the form when first opened and when saving fails
     return render_template(

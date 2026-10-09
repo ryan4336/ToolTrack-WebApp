@@ -7,7 +7,7 @@
 
     <!-- Show an error if required information is missing or saving fails -->
     {% if error %}
-        <p>{{ error }}</p>
+        <p class="form-error">{{ error }}</p>
     {% endif %}
 
     <form method="POST" class="form"action="{{ url_for('add_employee') }}">
