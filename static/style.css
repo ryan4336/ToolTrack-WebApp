@@ -249,6 +249,14 @@ body {
     width: 100%;
 }
 
+/* Use gray for secondary actions such as Cancel */
+.button-cancel {
+    background-color: #666666;
+}
+.button-cancel:hover {
+    background-color: #444444;
+}
+
 /* ---------------- SHARED FORMS ---------------- */
 /* ---------------------------------------------- */
 /* ---------------------------------------------- */
@@ -302,6 +310,7 @@ body {
 .form-actions {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 12px;
 }
 
