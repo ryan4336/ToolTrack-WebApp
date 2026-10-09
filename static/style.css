@@ -11,6 +11,18 @@
     box-sizing: border-box;
 }
 
+/* dot indicator next to admin employees' names */
+.admin-dot {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    margin-left: 6px;
+    border-radius: 50%;
+    background-color: var(--hulett-red);
+    vertical-align: middle;
+}
+
+
 /* ------------------- NAVBAR --------------------
 --------------------------------------------------
 --------------------------------------------------*/

@@ -31,7 +31,13 @@
             <!-- Create one table row for each employee from the database -->
             {% for employee in employees %}
             <tr>
-                <td>{{ employee.name }}</td>
+                <td>{{ employee.name }}
+                    <!-- Display indicator for admins -->
+                    {% if employee.admin %}
+                        <span class="admin-dot" title="Admin"></span>
+                    {% endif %}
+                </td>
+                
                 <td>{{ employee.email }}</td>
                 <td>{{ employee.phone_number or "—" }}</td>
                 <td>{{ employee.job_title }}</td>
