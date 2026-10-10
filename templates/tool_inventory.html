@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Tool Inventory | ToolTrack{% endblock %}
+
+{% block content %}
+<!--Tool Header Div-->
+<div class="tools-header">
+    <h1>Tool Inventory</h1>
+    <a href="{{ url_for('add_tool') }}" class="button">Add Tool</a>
+</div>
+
+
+{% endblock %}
