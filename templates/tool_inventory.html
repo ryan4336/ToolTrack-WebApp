@@ -3,11 +3,94 @@
 {% block title %}Tool Inventory | ToolTrack{% endblock %}
 
 {% block content %}
-<!--Tool Header Div-->
 <div class="tools-header">
     <h1>Tool Inventory</h1>
     <a href="{{ url_for('add_tool') }}" class="button">Add Tool</a>
 </div>
 
 
+<div class="search-form">
+    <label for="tool-search">Search Tools</label>
+
+    <div class="search-options">
+        <input type="search" id="tool-search" placeholder="Asset Tag, Tool Name, Status, Employee, or Condition">
+
+        <div class="dropdown-filter">
+            <label for="tool-status">Status</label>
+            <select id="tool-status">
+                <option value="all">All</option>
+                <option value="available">Available</option>
+                <option value="assigned">Assigned</option>
+                <option value="missing">Missing</option>
+                <option value="damaged">Damaged</option>
+                <!-- Value must match the row's data-status, which is the lowercase status with a space -->
+                <option value="under repair">Under Repair</option>
+            </select>
+        </div>
+
+
+        <div class="dropdown-filter">
+            <label for="tool-condition">Condition</label>
+            <select id="tool-condition">
+                <option value="all">All</option>
+                <option value="new">New</option>
+                <option value="good">Good</option>
+                <option value="fair">Fair</option>
+                <option value="poor">Poor</option>
+                <!-- Value must be lowercase to match the row's data-condition -->
+                <option value="unknown">Unknown</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+{% if tools %}
+<div class="tool-table-wrapper">
+    <table class="tool-table">
+        <thead>
+            <tr>
+                <th>Asset Tag</th>
+                <th>Tool Name</th>
+                <th>Status</th>
+                <th>Assigned Employee</th>
+                <th>Condition</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for tool in tools %}
+            {% set assigned_name = tool.active_assignment.employee.name if tool.active_assignment else '' %}
+            <tr class="tool-row"
+                data-search="
+                {{ tool.asset_tag }}
+                {{ tool.tool_name }}
+                {{ tool.status }}
+                {{ assigned_name }}
+                {{ tool.condition }}"
+                data-status="{{ tool.status | lower }}"
+                data-condition="{{ tool.condition | lower }}">
+
+                <td>{{ tool.asset_tag }}</td>
+                <td>{{ tool.tool_name }}</td>
+                <td>{{ tool.status }}</td>
+                <td>{{ assigned_name or "—" }}</td>
+                <td>{{ tool.condition }}</td>
+
+                <td>
+                    <a href="{{ url_for('tool_details', asset_id=tool.asset_id) }}" class="button button-small view-link">View</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!--No Results Found for rows-->
+<p id="no-search-results" hidden>No tools match your search and filters.</p>
+{% else %}
+    <p>No tools have been added yet.</p>
+{% endif %}
+<script src="{{ url_for('static', filename='tool_inventory.js') }}" defer></script>
 {% endblock %}
+

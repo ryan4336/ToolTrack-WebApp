@@ -74,6 +74,33 @@ class Employee(db.Model):
     active = db.Column(db.Boolean, nullable=False, default=True)
     admin = db.Column(db.Boolean, nullable=False, default=False)
 
+##Tool Table DB
+class Tool(db.Model):
+    __tablename__ = "tool"
+
+    asset_id=db.Column(db.Integer, primary_key=True)
+
+    tool_name = db.Column(db.String(150), nullable=False)
+    category = db.Column(db.String(100), nullable=False)
+    brand = db.Column(db.String(100))
+    model = db.Column(db.String(100))
+    description = db.Column(db.Text)
+
+    purchase_date = db.Column(db.Date, nullable=False)
+    price = db.Column(db.Numeric(12,2), nullable=False)
+
+    asset_tag = db.Column(db.String(100), unique=True, nullable=False)
+    serial_number = db.Column(db.String(150))
+
+    status = db.Column(
+        db.Enum("Available", "Assigned", "Missing", "Damaged", "Under Repair"), nullable = False)
+
+    condition = db.Column(
+        db.Enum("New", "Good", "Fair", "Poor", "Unknown"), nullable = False)
+    
+    notes = db.Column(db.Text)
+
+
 
 # -----------------------------------
 # ----------HELPER FUNCTIONS---------
@@ -238,6 +265,23 @@ def edit_employee(employee_id):
         employee=employee,
         error=error
     )
+
+@app.route("/tools")
+def tool_inventory():
+    tool_list = db.session.execute(
+        db.select(Tool).order_by(Tool.asset_tag)
+    ).scalars().all()
+
+    return render_template("tool_inventory.html", tools=tool_list)
+
+@app.route("/tools/add")
+def add_tool():
+    return render_template("add_tool.html")
+
+@app.route("/tools/<int:asset_id>")
+def tool_details(asset_id):
+    tool = db.get_or_404(Tool, asset_id)
+    return f"Tool Details for {tool.tool_name} (asset {tool.asset_id}) coming soon"
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5001, debug=True)
