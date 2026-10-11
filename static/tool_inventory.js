@@ -1,6 +1,6 @@
 
 const searchInput = document.getElementById("tool-search");
-const toolRows = document.querySelectorAll(".tool-row");
+const toolRows = document.querySelectorAll(".list-row");
 const noResults = document.getElementById("no-search-results");
 const statusFilter = document.getElementById("tool-status");
 const conditionFilter = document.getElementById("tool-condition");

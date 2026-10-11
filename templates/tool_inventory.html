@@ -3,17 +3,19 @@
 {% block title %}Tool Inventory | ToolTrack{% endblock %}
 
 {% block content %}
-<div class="tools-header">
+<div class="list-header">
     <h1>Tool Inventory</h1>
     <a href="{{ url_for('add_tool') }}" class="button">Add Tool</a>
 </div>
 
 
 <div class="search-form">
-    <label for="tool-search">Search Tools</label>
+    <label for="list-search">Search Tools</label>
 
-    <div class="search-options">
-        <input type="search" id="tool-search" placeholder="Asset Tag, Tool Name, Status, Employee, or Condition">
+    <div class="search-controls tool-search-controls">
+        <input type="search" 
+        id="tool-search" 
+        placeholder="Asset Tag, Tool Name, Status, Employee, or Condition">
 
         <div class="dropdown-filter">
             <label for="tool-status">Status</label>
@@ -45,8 +47,8 @@
 </div>
 
 {% if tools %}
-<div class="tool-table-wrapper">
-    <table class="tool-table">
+<div class="list-table-wrapper">
+    <table class="list-table">
         <thead>
             <tr>
                 <th>Asset Tag</th>
@@ -61,7 +63,7 @@
         <tbody>
             {% for tool in tools %}
             {% set assigned_name = tool.active_assignment.employee.name if tool.active_assignment else '' %}
-            <tr class="tool-row"
+            <tr class="list-row"
                 data-search="
                 {{ tool.asset_tag }}
                 {{ tool.tool_name }}

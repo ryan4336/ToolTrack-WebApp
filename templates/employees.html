@@ -4,7 +4,7 @@
 
 {% block content %}
 
-<div class="employees-header">
+<div class="list-header">
     <h1>Employees</h1>
 
     <a href="{{ url_for('add_employee') }}" class="button">
@@ -34,8 +34,8 @@
 
 {% if employees %}
 <!-- Allow horizontal scrolling if the table exceeds the available space -->
-<div class="employee-table-wrapper">
-    <table class="employee-table">
+<div class="list-table-wrapper">
+    <table class="list-table">
         <thead>
             <tr>
                 <th>Name</th>
@@ -51,7 +51,7 @@
             <!-- Create one table row for each employee from the database -->
             <!-- Store each employee's information in data-search so JS script can filter the row, data-active for status -->
             {% for employee in employees %}
-            <tr class="employee-row"
+            <tr class="list-row"
                 data-search="
                 {{ employee.employee_id }} 
                 {{ employee.name }} 

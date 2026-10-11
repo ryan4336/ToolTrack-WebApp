@@ -22,6 +22,21 @@
     vertical-align: middle;
 }
 
+/*not sure what this is used for but not deleting until confirmed not needed */
+.flash {
+    position: absolute;
+    top: 15px;
+    left: 0;
+    width: 100%;
+
+    background-color: #ffe5e5;
+    color: red;
+    border: 1px solid red;
+    padding: 12px;
+    text-align: center;
+    font-weight: bold;
+    z-index: 10;
+}
 
 /* ------------------- NAVBAR --------------------
 --------------------------------------------------
@@ -149,12 +164,58 @@ body {
     text-align: center;
 }
 
-/* ---------------- EMPLOYEE LIST PAGE ---------------- 
-------------------------------------------------
-------------------------------------------------*/
+/* ----------------- SHARED LIST ------------------ */
+/* ------------------------------------------------ */
+/* ------------------------------------------------ */
 
-/* Place the page heading and Add Employee button at opposite ends */
-.employees-header {
+/* Add a border around the table and allow scrolling left and right if table shrinks */
+.list-table-wrapper {
+    border: 1px solid #dddddd;
+    border-radius: 6px;
+    overflow-x: auto;
+}
+
+/* Fill the available width and combine cell borders */
+.list-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Give every heading and data cell consistent spacing */
+.list-table th,
+.list-table td {
+    padding: 14px 18px;
+    text-align: left;
+    border-bottom: 1px solid #dddddd;
+}
+
+/* Match the dark navigation bar */
+.list-table thead {
+    background-color: var(--hulett-charcoal);
+    color: var(--text-light);
+}
+
+/* Alternate row colors to make the list easier to read */
+.list-table tbody tr:nth-child(even) {
+    background-color: #f7f7f7;
+}
+
+/* Highlight the row the mouse is over */
+.list-table tbody tr:hover {
+    background-color: #eeeeee;
+}
+
+/* remove border from bottom of last cell (covered by outside border) */
+.list-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.div-container {
+    position: relative;
+}
+
+/* Place the page heading and Add [list item] button at opposite ends */
+.list-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -162,71 +223,12 @@ body {
     margin-bottom: 24px;
 }
 
-.employees-header h1 {
+.list-header h1 {
     margin: 0;
 }
 
-/* Add a border around the table and allow scrolling left and right if table shrinks */
-.employee-table-wrapper {
-    border: 1px solid #dddddd;
-    border-radius: 6px;
-    overflow-x: auto;
-}
-
-/* Fill the available width and combine cell borders */
-.employee-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-/* Give every heading and data cell consistent spacing */
-.employee-table th,
-.employee-table td {
-    padding: 14px 18px;
-    text-align: left;
-    border-bottom: 1px solid #dddddd;
-}
-
-/* Match the dark navigation bar */
-.employee-table thead {
-    background-color: var(--hulett-charcoal);
-    color: var(--text-light);
-}
-
-/* Alternate row colors to make the list easier to read */
-.employee-table tbody tr:nth-child(even) {
-    background-color: #f7f7f7;
-}
-
-/* Highlight the row the mouse is over */
-.employee-table tbody tr:hover {
-    background-color: #eeeeee;
-}
-
-/* remove border from bottom of last cell (covered by outside border) */
-.employee-table tbody tr:last-child td {
-    border-bottom: none;
-}
 
 
-.div-container {
-    position: relative;
-}
-
-.flash {
-    position: absolute;
-    top: 15px;
-    left: 0;
-    width: 100%;
-
-    background-color: #ffe5e5;
-    color: red;
-    border: 1px solid red;
-    padding: 12px;
-    text-align: center;
-    font-weight: bold;
-    z-index: 10;
-}
 
 /* ---------------- SHARED BUTTONS ---------------- */
 /* ------------------------------------------------ */
@@ -356,6 +358,11 @@ body {
     width: 50%;
 }
 
+/* Override Search bar length for Tool Inventory page 
+(two buttons next to the search bar make it shorter compared to employee page's search bar) */
+.tool-search-controls {
+    width: 77%;
+}
 .search-controls input {
     flex: 1;
     min-width: 0;
