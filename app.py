@@ -281,7 +281,7 @@ def add_tool():
 @app.route("/tools/<int:asset_id>")
 def tool_details(asset_id):
     tool = db.get_or_404(Tool, asset_id)
-    return f"Tool Details for {tool.tool_name} (asset {tool.asset_id}) coming soon"
+    return "Placeholder"
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5001, debug=True)
