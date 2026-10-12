@@ -283,5 +283,37 @@ def tool_details(asset_id):
     tool = db.get_or_404(Tool, asset_id)
     return "Placeholder"
 
+@app.route("/tool_types")
+def tool_types():
+    categories = db.session.execute(
+        db.select(Tool.category).distinct()
+    ).scalars().all()
+
+    coded_limits = {
+        "Vacuum Pumps": 1,
+        "Recovery Machines": 2,
+        "Hand Tools": 5
+    }
+
+    tool_type_summary = []
+    for category in categories:
+        available_count = Tool.query.filter_by(
+            category=category, 
+            status="Available"
+        ).count()
+
+        limit = coded_limits.get(category, 0)
+        
+        is_low = available_count <= limit
+
+        tool_type_summary.append({
+            "category": category,
+            "available_count": available_count,
+            "warning_limit": limit,
+            "is_low": is_low
+        })
+
+    return render_template("tool_types.html", tool_types=tool_type_summary)
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5001, debug=True)

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Tool Categories & Warning Limits</h2>
+        <a href="{{ url_for('tool_inventory') }}" class="btn btn-secondary btn-sm">Back to Inventory</a>
+    </div>
+    <p class="text-muted">Live overview of equipment categories, current available stock, and threshold warnings.</p>
+
+    <table class="table table-striped table-bordered mt-3">
+        <thead class="table-dark">
+            <tr>
+                <th>Tool Type / Category</th>
+                <th>Available Count</th>
+                <th>Warning Limit</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in tool_types %}
+            <tr>
+                <td><strong>{{ item.category }}</strong></td>
+                <td>{{ item.available_count }}</td>
+                <td>{{ item.warning_limit }}</td>
+                <td>
+                    {% if item.is_low %}
+                        <span class="badge bg-danger">Low Stock Warning</span>
+                    {% else %}
+                        <span class="badge bg-success">Normal</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" class="text-center text-muted py-4">No tool categories found in the database yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
