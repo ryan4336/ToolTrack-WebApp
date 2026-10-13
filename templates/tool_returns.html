@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Tool Returns | ToolTrack{% endblock %}
+{% block content %}
+<div class="list-header">
+    <h1>Tool Returns</h1>
+    <a class="button" href="{{ url_for('tool_inventory') }}">Tool Inventory</a>
+</div>
+<p>Tools currently checked out to employees.</p>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+        <p role="status">{{ message }}</p>
+    {% endfor %}
+{% endwith %}
+
+{% if assignments %}
+<div class="search-form">
+    <label for="return-search">Search Checked Out Tools</label>
+    <div class="search-controls">
+        <input type="search" id="return-search" placeholder="Asset tag, tool, or employee">
+    </div>
+</div>
+<div class="list-table-wrapper">
+    <table class="list-table" id="returns-table">
+        <thead>
+            <tr>
+                <th>Asset Tag</th>
+                <th>Tool Name</th>
+                <th>Employee</th>
+                <th>Checked Out</th>
+                <th>Expected Return</th>
+                <th>Return</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for assignment in assignments %}
+            <tr class="list-row">
+                <td>{{ assignment.tool.asset_tag }}</td>
+                <td>{{ assignment.tool.tool_name }}</td>
+                <td>{{ assignment.employee.name }}</td>
+                <td>{{ assignment.date_assigned.strftime('%m/%d/%Y') }}</td>
+                <td>{{ assignment.expected_return_date.strftime('%m/%d/%Y') if assignment.expected_return_date else '—' }}</td>
+                <td>
+                    <form method="post" action="{{ url_for('return_tool', assignment_id=assignment.assignment_id) }}" onsubmit="return confirm('Confirm tool return?');">
+                        <label for="condition-{{ assignment.assignment_id }}">Condition</label>
+                        <select name="condition" id="condition-{{ assignment.assignment_id }}" required>
+                            <option value="">Select</option>
+                            {% for condition in ['New', 'Good', 'Fair', 'Poor', 'Unknown'] %}
+                                <option value="{{ condition }}">{{ condition }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="button button-small">Return Tool</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<p id="return-no-results" hidden>No matching tools found.</p>
+{% else %}
+<p>No tools are currently checked out.</p>
+{% endif %}
+<script>
+const search = document.getElementById('return-search');
+if (search) {
+    search.addEventListener('input', function () {
+        const term = search.value.trim().toLowerCase();
+        let matches = 0;
+        document.querySelectorAll('#returns-table tbody tr').forEach(function (row) {
+            const visible = row.textContent.toLowerCase().includes(term);
+            row.hidden = !visible;
+            if (visible) matches++;
+        });
+        document.getElementById('return-no-results').hidden = matches > 0;
+    });
+}
+</script>
+{% endblock %}
