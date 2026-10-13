@@ -18,7 +18,7 @@ function filterTools() {
         const matchesSearch = toolText.includes(search);
 
         const matchesStatus = status === "all" || row.dataset.status === status;
-        const matchesCondition = status === "all" || row.dataset.condtion === condition;
+        const matchesCondition = condition === "all" || row.dataset.condition === condition;
         const matches = matchesSearch && matchesStatus && matchesCondition;
         row.hidden = !matches;
 

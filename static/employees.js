@@ -3,7 +3,7 @@
 
 // Find the search field, employee rows, empty-results message, and status filter
 const searchInput = document.getElementById("employee-search");
-const employeeRows = document.querySelectorAll(".employee-row");
+const employeeRows = document.querySelectorAll(".list-row");
 const noResults = document.getElementById("no-search-results");
 const statusFilter = document.getElementById("employee-status");
 
