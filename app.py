@@ -282,6 +282,28 @@ def tool_details(asset_id):
     tool = db.get_or_404(Tool, asset_id)
     return "Placeholder"
 
+# Display the assignment form for a specific employee
+@app.route("/employees/<int:employee_id>/assign")
+def assign_tool(employee_id):
+    employee = db.get_or_404(Employee, employee_id)
+
+    # Prevent opening the form for an inactive employee
+    if not employee.active:
+        return redirect(url_for("employees"))
+
+    # Load tools currently marked Available
+    available_tools = db.session.execute(
+        db.select(Tool)
+        .where(Tool.status == "Available")
+        .order_by(Tool.tool_name, Tool.asset_tag)
+    ).scalars().all()
+
+    return render_template(
+        "assign_tool.html",
+        employee=employee,
+        tools=available_tools
+    )
+    
 @app.route("/tool_types")
 def tool_types():
     categories = db.session.execute(

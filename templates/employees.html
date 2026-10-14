@@ -77,6 +77,13 @@
                        class="button button-small">
                        Edit
                     </a>
+                    <!-- Option to assign a tool if the employee is active -->
+                    {% if employee.active %}
+                        <a href="{{ url_for('assign_tool', employee_id=employee.employee_id) }}"
+                        class="button button-small">
+                            Assign Tool
+                        </a>
+                    {% endif %}
                 </td>
             </tr>
             {% endfor %}
