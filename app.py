@@ -5,6 +5,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import URL, text
 from sqlalchemy.exc import IntegrityError, OperationalError
+from datetime import datetime, date, timezone
 
 # Load the database settings from .env
 load_dotenv()
@@ -323,15 +324,95 @@ def tool_details(asset_id):
     return "Placeholder"
 
 # Display the assignment form for a specific employee
-@app.route("/employees/<int:employee_id>/assign")
+@app.route("/employees/<int:employee_id>/assign", methods=["GET", "POST"])
 def assign_tool(employee_id):
     employee = db.get_or_404(Employee, employee_id)
+    error = None
 
-    # Prevent opening the form for an inactive employee
+    # Ensure only active employees can receive tools
     if not employee.active:
         return redirect(url_for("employees"))
 
-    # Load tools currently marked Available
+    if request.method == "POST":
+        # get the submitted assignment details
+        asset_id = request.form.get("asset_id", type=int)
+        job_vehicle = request.form.get("job_vehicle_number", "").strip()
+        return_date_text = request.form.get("expected_return_date", "")
+        condition = request.form.get("condition_when_assigned", "")
+        notes = request.form.get("notes", "").strip()
+
+        expected_return = None
+
+        # Convert the optional date from form text into a Python date
+        try:
+            if return_date_text:
+                expected_return = date.fromisoformat(return_date_text)
+        except ValueError:
+            error = "Please enter a valid expected return date."
+
+        if not asset_id:
+            error = "Please select a tool."
+        elif condition not in ("New", "Good", "Fair", "Poor"):
+            error = "Please select a known condition."
+        elif len(job_vehicle) > 150:
+            error = "Job/Vehicle Number cannot exceed 150 characters."
+
+        if error is None:
+            # Lock the tool using .with_for_update() until changes are committed so two assignments
+            # can't check out the same tool at the same time
+            tool = db.session.execute(
+                db.select(Tool)
+                .where(Tool.asset_id == asset_id)
+                # .with_for_update() locks the selected database row until the transaction finishes, 
+                # preventing other transactions from modifying it at the same time
+                .with_for_update()
+            ).scalar_one_or_none()
+
+            # Check for an existing active assignment
+            existing_assignment = db.session.execute(
+                db.select(Assignment)
+                .where(
+                    Assignment.asset_id == asset_id,
+                    Assignment.active.is_(True)
+                )
+            ).scalars().first()
+
+            if tool is None:
+                error = "The selected tool could not be found."
+            elif tool.status != "Available" or existing_assignment:
+                error = "That tool is no longer available."
+            else:
+                # Record data and the timestamp in UTC 
+                assignment = Assignment(
+                    asset_id=tool.asset_id,
+                    employee_id=employee.employee_id,
+                    job_vehicle_number=job_vehicle or None,
+                    date_assigned=datetime.now(timezone.utc).replace(tzinfo=None),
+                    expected_return_date=expected_return,
+                    condition_when_assigned=condition,
+                    notes=notes or None,
+                    active=True
+                )
+
+                # Update the tool to reflect its new assignment
+                tool.status = "Assigned"
+                tool.condition = condition
+
+                try:
+                    # Save the assignment and tool changes
+                    db.session.add(assignment)
+                    db.session.commit()
+                except IntegrityError:
+                    db.session.rollback()
+                    error = "The assignment could not be saved."
+                else:
+                    return redirect(url_for("employees"))
+
+        # Discard unsaved changes after an error (also removes lock on transaction)
+        if error:
+            db.session.rollback()
+
+    # Refresh the available tools when displaying the form
     available_tools = db.session.execute(
         db.select(Tool)
         .where(Tool.status == "Available")
@@ -341,7 +422,8 @@ def assign_tool(employee_id):
     return render_template(
         "assign_tool.html",
         employee=employee,
-        tools=available_tools
+        tools=available_tools,
+        error=error
     )
     
 @app.route("/tool_types")

@@ -6,7 +6,11 @@
 <h1 class="form-title">Assign Tool</h1>
 
 {% if tools %}
-<form class="form">
+<form method="POST" class="form">
+    <!-- Display errors -->
+    {% if error %}
+        <p class="form-error">{{ error }}</p>
+    {% endif %}
     <!-- Show who will receive the tool -->
     <div class="assignment-employee">
         <p><strong>Employee:</strong> {{ employee.name }}</p>
@@ -66,7 +70,7 @@
             Cancel
         </a>
         
-        <button type="button" class="button" disabled>
+        <button type="submit" class="button">
             Assign Tool
         </button>
     </div>
