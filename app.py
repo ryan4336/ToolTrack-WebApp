@@ -426,6 +426,29 @@ def assign_tool(employee_id):
         error=error
     )
     
+@app.route("/assignments")
+def assignments():
+    # Combine each assignment with its tool and employee.
+    assignment_list = db.session.execute(
+        db.select(Assignment, Tool, Employee)
+        .join(Tool, Assignment.asset_id == Tool.asset_id)
+        .join(Employee, Assignment.employee_id == Employee.employee_id)
+        .order_by(Assignment.date_assigned.desc())
+    ).all()
+
+    return render_template(
+        "assignments.html",
+        assignments=assignment_list
+    )
+    
+@app.route("/assignments/<int:assignment_id>")
+def assignment_details(assignment_id):
+    # Confirm the assignment exists before displaying its page
+    assignment = db.get_or_404(Assignment, assignment_id)
+
+    # Placeholder
+    return f"Details for assignment #{assignment.assignment_id}"
+    
 @app.route("/tool_types")
 def tool_types():
     categories = db.session.execute(
