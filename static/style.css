@@ -403,3 +403,12 @@ body {
     outline: 2px solid var(--hulett-red);
     outline-offset: 2px;
 }
+
+/* ADDITIONAL STYLING FOR ASSIGN_TOOL.html */ 
+/* Separate the employee details from the assignment fields */
+.assignment-employee {
+    margin-bottom: 24px;
+}
+.assignment-employee p {
+    margin: 0 0 8px;
+}

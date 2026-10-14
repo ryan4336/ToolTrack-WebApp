@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Assign Tool | ToolTrack{% endblock %}
+
+{% block content %}
+<h1 class="form-title">Assign Tool</h1>
+
+{% if tools %}
+<form method="POST" class="form">
+    <!-- Display errors -->
+    {% if error %}
+        <p class="form-error">{{ error }}</p>
+    {% endif %}
+    <!-- Show who will receive the tool -->
+    <div class="assignment-employee">
+        <p><strong>Employee:</strong> {{ employee.name }}</p>
+        <p><strong>Email:</strong> {{ employee.email }}</p>
+    </div>
+
+    <!-- Asset tags distinguish tools that have the same name -->
+    <div class="form-group">
+        <label for="asset-id">Tool</label>
+        <select id="asset-id" name="asset_id" required>
+            <option value="">Select a tool</option>
+
+            {% for tool in tools %}
+                <option value="{{ tool.asset_id }}"
+                        data-condition="{{ tool.condition }}">
+                    {{ tool.tool_name }} — {{ tool.asset_tag }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="job-vehicle-number">Job/Vehicle Number</label>
+        <input type="text"
+               id="job-vehicle-number"
+               name="job_vehicle_number"
+               maxlength="150">
+    </div>
+
+    <div class="form-group">
+        <label for="expected-return-date">Expected Return Date</label>
+        <input type="date"
+               id="expected-return-date"
+               name="expected_return_date">
+    </div>
+
+    <!-- Automatically select the tool's condition -->
+    <div class="form-group">
+        <label for="condition">Condition When Assigned</label>
+        <select id="condition" name="condition_when_assigned" required>
+            <option value="">Select a condition</option>
+            <option value="New">New</option>
+            <option value="Good">Good</option>
+            <option value="Fair">Fair</option>
+            <option value="Poor">Poor</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="notes">Notes</label>
+        <textarea id="notes" name="notes" rows="4"></textarea>
+    </div>
+
+    <div class="form-actions">
+        <!-- Disabled until the database-saving code is added -->
+        <a href="{{ url_for('employees') }}" class="button button-cancel">
+            Cancel
+        </a>
+        
+        <button type="submit" class="button">
+            Assign Tool
+        </button>
+    </div>
+</form>
+{% else %}
+    <p class="form-title">No tools are currently available to assign.</p>
+
+    <div class="form-actions">
+        <a href="{{ url_for('employees') }}" class="button button-cancel">
+            Back to Employees
+        </a>
+    </div>
+{% endif %}
+<!-- Load the script only when there are tools to select. -->
+{% if tools %}
+    <script src="{{ url_for('static', filename='assign_tool.js') }}" defer></script>
+{% endif %}
+{% endblock %}
