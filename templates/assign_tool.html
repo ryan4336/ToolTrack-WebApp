@@ -20,7 +20,8 @@
             <option value="">Select a tool</option>
 
             {% for tool in tools %}
-                <option value="{{ tool.asset_id }}">
+                <option value="{{ tool.asset_id }}"
+                        data-condition="{{ tool.condition }}">
                     {{ tool.tool_name }} — {{ tool.asset_tag }}
                 </option>
             {% endfor %}
@@ -78,5 +79,9 @@
             Back to Employees
         </a>
     </div>
+{% endif %}
+<!-- Load the script only when there are tools to select. -->
+{% if tools %}
+    <script src="{{ url_for('static', filename='assign_tool.js') }}" defer></script>
 {% endif %}
 {% endblock %}
