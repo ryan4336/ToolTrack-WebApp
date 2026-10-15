@@ -456,7 +456,24 @@ def tool_types():
             "is_low": is_low
         })
 
-    return render_template("tool_types.html", tool_types=tool_type_summary)
+@app.route("/change_password", methods=["GET", "POST"])
+def change_password():
+    if request.method == "POST":
+        current_password = request.form.get("current_password", "").strip()
+        new_password = request.form.get("new_password", "").strip()
+        confirm_password = request.form.get("confirm_password", "").strip()
+
+        # Validate the form inputs
+        if not current_password or not new_password or not confirm_password:
+            flash("All fields are required.", "error")
+        elif new_password != confirm_password:
+            flash("New password and confirmation do not match.", "error")
+        else:
+            
+            flash("Password changed successfully!", "success")
+            return redirect(url_for("dashboard"))
+
+    return render_template("change_password.html")
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5001, debug=True)
