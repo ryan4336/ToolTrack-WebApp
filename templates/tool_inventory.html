@@ -61,14 +61,14 @@
         </thead>
 
         <tbody>
-            {% for tool in tools %}
-            {% set assigned_name = tool.active_assignment.employee.name if tool.active_assignment else '' %}
+            <!-- Each result contains a tool and its currently assigned employee's name. -->
+            {% for tool, assigned_name in tools %}
             <tr class="list-row"
                 data-search="
                 {{ tool.asset_tag }}
                 {{ tool.tool_name }}
                 {{ tool.status }}
-                {{ assigned_name }}
+                {{ assigned_name or '' }}
                 {{ tool.condition }}"
                 data-status="{{ tool.status | lower }}"
                 data-condition="{{ tool.condition | lower }}">

@@ -308,9 +308,20 @@ def edit_employee(employee_id):
 
 @app.route("/tools")
 def tool_inventory():
+    # Get each tool and the employee from its active assignment, if any
     tool_list = db.session.execute(
-        db.select(Tool).order_by(Tool.asset_tag)
-    ).scalars().all()
+        db.select(Tool, Employee.name)
+        .outerjoin(
+            Assignment,
+            (Assignment.asset_id == Tool.asset_id)
+            & (Assignment.active.is_(True))
+        )
+        .outerjoin(
+            Employee,
+            Employee.employee_id == Assignment.employee_id
+        )
+        .order_by(Tool.asset_tag)
+    ).all()
 
     return render_template("tool_inventory.html", tools=tool_list)
 
