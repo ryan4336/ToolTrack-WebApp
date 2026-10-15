@@ -443,11 +443,19 @@ def assignments():
     
 @app.route("/assignments/<int:assignment_id>")
 def assignment_details(assignment_id):
-    # Confirm the assignment exists before displaying its page
+    # Find the assignment, or display a 404 if it does not exist
     assignment = db.get_or_404(Assignment, assignment_id)
 
-    # Placeholder
-    return f"Details for assignment #{assignment.assignment_id}"
+    # Load the employee and tool connected to this assignment
+    employee = db.get_or_404(Employee, assignment.employee_id)
+    tool = db.get_or_404(Tool, assignment.asset_id)
+
+    return render_template(
+        "assignment_details.html",
+        assignment=assignment,
+        employee=employee,
+        tool=tool
+    )
     
 @app.route("/tool_types")
 def tool_types():
