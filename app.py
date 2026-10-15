@@ -5,6 +5,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import URL, text
 from sqlalchemy.exc import IntegrityError, OperationalError
+from datetime import datetime
 
 # Load the database settings from .env
 load_dotenv()
@@ -85,19 +86,14 @@ class Tool(db.Model):
     brand = db.Column(db.String(100))
     model = db.Column(db.String(100))
     description = db.Column(db.Text)
-
     purchase_date = db.Column(db.Date, nullable=False)
     price = db.Column(db.Numeric(12,2), nullable=False)
-
     asset_tag = db.Column(db.String(100), unique=True, nullable=False)
     serial_number = db.Column(db.String(150))
-
     status = db.Column(
         db.Enum("Available", "Assigned", "Missing", "Damaged", "Under Repair"), nullable = False)
-
     condition = db.Column(
         db.Enum("New", "Good", "Fair", "Poor", "Unknown"), nullable = False)
-    
     notes = db.Column(db.Text)
 
 
@@ -268,20 +264,94 @@ def edit_employee(employee_id):
 
 @app.route("/tools")
 def tool_inventory():
+    error = None
     tool_list = db.session.execute(
         db.select(Tool).order_by(Tool.asset_tag)
     ).scalars().all()
 
     return render_template("tool_inventory.html", tools=tool_list)
 
-@app.route("/tools/add")
+
+
+#WORK HERE WORK HERE 
+allowed_statuses = ["Available", "Damaged", "Under Repair"]
+
+@app.route("/tools/add", methods=["GET", "POST"])
 def add_tool():
-    return render_template("add_tool.html")
+    error = None
+
+    statuses = [option for option in Tool.__table__.c.status.type.enums if option in allowed_statuses]
+    conditions = list(Tool.__table__.c.condition.type.enums)
+    if request.method == "POST":
+        tool_name = request.form.get("tool_name", "").strip() #required
+        brand = request.form.get("brand", "").strip() 
+        model = request.form.get("model", "").strip() #required
+        category = request.form.get("category", "").strip() #required
+        asset_tag = request.form.get("asset_tag", "").strip() #required
+        serial_number = request.form.get("serial_number", "").strip()
+        purchase_date = request.form.get("purchase_date", "").strip() #required
+        price = request.form.get("price", "").strip()
+        status = request.form.get("status", "")
+        condition = request.form.get("condition", "") #required
+        notes = request.form.get("notes", "").strip()
+
+        if not all([tool_name, category, asset_tag, purchase_date, price, status, condition]):
+            error = "Please fill in all required fields"
+
+        elif status not in statuses: 
+            error = "Selected status is not allowed"
+        elif condition not in conditions: 
+            error = "Selected condition is not allowed"
+
+        else: 
+            try:
+                purchase_date = datetime.strptime(purchase_date, "%Y-%m=%d").date()
+            except ValueError:
+                error = "Enter a valid purchase date"
+            if not error:
+                try:
+                    price = round(float(price), 2)
+                    if not (0 <= price <= 999999.99):
+                        raise ValueError
+                except ValueError:
+                    error = "Enter a price between $0 and $999,999.99"
+
+            else:
+                tool = Tool(
+                    tool_name=tool_name,
+                    category=category,
+                    brand=brand or None,
+                    model=model or None,
+                    asset_tag=asset_tag,
+                    serial_number=serial_number or None,
+                    purchase_date=purchase_date,
+                    price=price,
+                    status=status,
+                    condition=condition,
+                    notes=notes or None
+                )
+                try: 
+                    db.session.add(tool)
+                    db.session.commit()
+                except IntegrityError:
+                    db.session.rollback()
+                    error = "Error while saving. The Asset Tag entered may already be in use"
+
+                else:
+                    return redirect (url_for("tool_inventory"))
+    return render_template(
+        "add_tool.html",
+        error=error,
+        statuses=statuses,
+        conditions=conditions,
+    )
+
+        
 
 @app.route("/tools/<int:asset_id>")
 def tool_details(asset_id):
     tool = db.get_or_404(Tool, asset_id)
-    return "Placeholder"
+    return "placeholder"
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5001, debug=True)
