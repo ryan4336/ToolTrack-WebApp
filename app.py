@@ -1,7 +1,7 @@
 import os
-
+import bcrypt
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, session, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import URL, text
 from sqlalchemy.exc import IntegrityError, OperationalError
@@ -169,6 +169,7 @@ def format_phone(phone):
 @app.route("/", methods=["GET", "POST"])
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    
     # Temporarily send every submitted login directly to the dashboard
     # Authentication will be added later
     if request.method == 'POST':
@@ -177,18 +178,24 @@ def login():
     
         mydb = db.engine.raw_connection() # Connect to database using sqlalchemy
         cursor = mydb.cursor()
-        query = "SELECT * FROM employee WHERE email = %s AND password_hash = %s AND admin = True ;"
-        cursor.execute(query, (username, password))
-        admin = cursor.fetchone()
+        try:
+            query = "SELECT * FROM employee WHERE email = %s AND password_hash = %s AND admin = True ;"
+            cursor.execute(query, (username, password))
+            admin = cursor.fetchone()
 
-        mydb.close()
-        if admin: 
+        finally:
+            cursor.close()
+            mydb.close()
+
+        if admin and bcrypt.checkpw(password.encode('utf-8'), admin[1].encode('utf-8')
+            if isinstance(admin[1], str) else admin[1]):
+            session['user_email'] = username
             return redirect(url_for('dashboard'))
-        else:
-            flash('Invalid credentials. Please try again.', 'error')
-            return render_template('login.html')
         
+        flash("Invalid username or password.", "error")
+        return render_template('login.html')
     return render_template('login.html')
+
 
 
 # Display the dashboard page
@@ -458,6 +465,17 @@ def tool_types():
 
 @app.route("/change_password", methods=["GET", "POST"])
 def change_password():
+    #check if user is signed in
+    if 'user_email' not in session:
+        flash("You must be signed in to change your password.", "error")
+        return redirect(url_for("login"))
+
+    user = db.session.get(Employee, session['user_email'])
+
+    if user is None:
+        flash("Employee not found.", "error")
+        return redirect(url_for("login"))
+    
     if request.method == "POST":
         current_password = request.form.get("current_password", "").strip()
         new_password = request.form.get("new_password", "").strip()
@@ -468,8 +486,16 @@ def change_password():
             flash("All fields are required.", "error")
         elif new_password != confirm_password:
             flash("New password and confirmation do not match.", "error")
+        elif not bcrypt.checkpw(current_password.encode('utf-8'), user.password_hash.encode('utf-8')):
+            flash("Current password is incorrect.", "error")
         else:
-            
+            # Hash the new password
+            hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
+
+            # Update the user's password
+            user.password_hash = hashed_password
+            db.session.commit()
+
             flash("Password changed successfully!", "success")
             return redirect(url_for("dashboard"))
 
