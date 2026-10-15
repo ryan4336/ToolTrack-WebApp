@@ -169,33 +169,42 @@ def format_phone(phone):
 @app.route("/", methods=["GET", "POST"])
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    
-    # Temporarily send every submitted login directly to the dashboard
-    # Authentication will be added later
+
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-    
-        mydb = db.engine.raw_connection() # Connect to database using sqlalchemy
+        username = request.form.get('username', '')
+        password = request.form.get('password', '')
+
+        mydb = db.engine.raw_connection()
         cursor = mydb.cursor()
+
         try:
-            query = "SELECT * FROM employee WHERE email = %s AND password_hash = %s AND admin = True ;"
-            cursor.execute(query, (username, password))
+            # Find the employee using their email only
+            query = """
+                SELECT email, password_hash
+                FROM employee
+                WHERE email = %s AND admin = TRUE;
+            """
+            cursor.execute(query, (username,))
             admin = cursor.fetchone()
 
         finally:
             cursor.close()
             mydb.close()
 
-        if admin and bcrypt.checkpw(password.encode('utf-8'), admin[1].encode('utf-8')
-            if isinstance(admin[1], str) else admin[1]):
-            session['user_email'] = username
+        # Verify the submitted password against the bcrypt hash
+        if admin and bcrypt.checkpw(
+            password.encode('utf-8'),
+            admin[1].encode('utf-8')
+            if isinstance(admin[1], str)
+            else admin[1]
+        ):
+            session['user_email'] = admin[0]
             return redirect(url_for('dashboard'))
-        
+
         flash("Invalid username or password.", "error")
         return render_template('login.html')
-    return render_template('login.html')
 
+    return render_template('login.html')
 
 
 # Display the dashboard page
