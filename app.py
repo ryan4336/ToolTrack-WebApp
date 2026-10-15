@@ -272,8 +272,6 @@ def tool_inventory():
     return render_template("tool_inventory.html", tools=tool_list)
 
 
-
-#WORK HERE WORK HERE 
 allowed_statuses = ["Available", "Damaged", "Under Repair"]
 
 @app.route("/tools/add", methods=["GET", "POST"])
@@ -346,7 +344,6 @@ def add_tool():
         conditions=conditions,
     )
 
-        
 
 @app.route("/tools/<int:asset_id>")
 def tool_details(asset_id):
