@@ -1,59 +1,44 @@
 {% extends "base.html" %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% block title %}Change Password | ToolTrack{% endblock %}
 
-    <title>Log In | ToolTrack</title>
+{% block content %}
 
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body class="login-page">
-
-    <main class="login-card">
-        <h1>ToolTrack</h1>
-        <p class="login-subtitle">Log in to manage your tools.</p>
-
-        <form method="POST" action="{{ url_for('login') }}">
+        <form method="POST" action="{{ url_for('change_password') }}">
 
             <div class="form-group">
-                <label for="username">Username</label>
-                <input
-                    type="text"
-                    id="username"
-                    name="username"
-                    autocomplete="username"
-                    required
-                >
-            </div>
-
-            <div class="form-group">
-                <label for="password">Password</label>
+                <label for="current_password">Current Password</label>
                 <input
                     type="password"
-                    id="password"
-                    name="password"
+                    id="current_password"
+                    name="current_password"
                     autocomplete="current-password"
                     required
                 >
             </div>
 
-            <button type="submit" class="button button-full">Log In</button>
+            <div class="form-group">
+                <label for="new_password">New Password</label>
+                <input
+                    type="password"
+                    id="new_password"
+                    name="new_password"
+                    autocomplete="new-password"
+                    required
+                >
+            </div>
+            <div class="form-group">
+                <label for="confirm_password">Confirm New Password</label>
+                <input
+                    type="password"
+                    id="confirm_password"
+                    name="confirm_password"
+                    autocomplete="new-password"
+                    required
+                >
+            </div>
+
+            <button type="submit" class="button button-full">Change Password</button>
         </form>
-    </main>
-    <div class="login-failed">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="flash {{ category }}">{{ message }}</div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
-            {% block content %}{% endblock %}
-    </div>
 
 </body>
-</html>
 {% endblock %}

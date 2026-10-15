@@ -473,7 +473,7 @@ def change_password():
             flash("Password changed successfully!", "success")
             return redirect(url_for("dashboard"))
 
-    return render_template("change_password.html")
+    return render_template("change_pass.html")
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5001, debug=True)
