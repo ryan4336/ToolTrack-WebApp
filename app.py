@@ -324,9 +324,20 @@ def edit_employee(employee_id):
 
 @app.route("/tools")
 def tool_inventory():
+    # Get each tool and the employee from its active assignment, if any
     tool_list = db.session.execute(
-        db.select(Tool).order_by(Tool.asset_tag)
-    ).scalars().all()
+        db.select(Tool, Employee.name)
+        .outerjoin(
+            Assignment,
+            (Assignment.asset_id == Tool.asset_id)
+            & (Assignment.active.is_(True))
+        )
+        .outerjoin(
+            Employee,
+            Employee.employee_id == Assignment.employee_id
+        )
+        .order_by(Tool.asset_tag)
+    ).all()
 
     return render_template("tool_inventory.html", tools=tool_list)
 
@@ -337,7 +348,7 @@ def add_tool():
 @app.route("/tools/<int:asset_id>")
 def tool_details(asset_id):
     tool = db.get_or_404(Tool, asset_id)
-    return "Placeholder"
+    return render_template("tool_details.html", tool=tool)
 
 # Display the assignment form for a specific employee
 @app.route("/employees/<int:employee_id>/assign", methods=["GET", "POST"])
@@ -442,6 +453,35 @@ def assign_tool(employee_id):
         error=error
     )
     
+@app.route("/assignments")
+def assignments():
+    # Combine each assignment with its tool and employee.
+    assignment_list = db.session.execute(
+        db.select(Assignment, Tool, Employee)
+        .join(Tool, Assignment.asset_id == Tool.asset_id)
+        .join(Employee, Assignment.employee_id == Employee.employee_id)
+        .order_by(Assignment.date_assigned.desc())
+    ).all()
+
+    return render_template(
+        "assignments.html",
+        assignments=assignment_list
+    )
+    
+@app.route("/assignments/<int:assignment_id>")
+def assignment_details(assignment_id):
+    assignment = db.get_or_404(Assignment, assignment_id)
+
+    employee = db.get_or_404(Employee, assignment.employee_id)
+    tool = db.get_or_404(Tool, assignment.asset_id)
+
+    return render_template(
+        "assignment_details.html",
+        assignment=assignment,
+        employee=employee,
+        tool=tool
+    )
+    
 @app.route("/tool_types")
 def tool_types():
     categories = db.session.execute(
@@ -509,6 +549,44 @@ def change_password():
             return redirect(url_for("dashboard"))
 
     return render_template("change_pass.html")
+
+@app.route("/employees/<int:employee_id>/delete", methods=["POST"])
+def delete_employee(employee_id):
+    employee = db.get_or_404(Employee, employee_id)
+    try:
+        Assignment.query.filter_by(employee_id=employee_id).delete()
+        db.session.delete(employee)
+        db.session.commit()
+        flash("Employee deleted successfully.", "success")
+    except IntegrityError:
+        db.session.rollback()
+        flash("Could not delete employee due to existing dependencies.", "error")
+    return redirect(url_for("employees"))
+
+@app.route("/tools/<int:asset_id>/delete", methods=["POST"])
+def delete_tool(asset_id):
+    tool = db.get_or_404(Tool, asset_id)
+    try:
+        Assignment.query.filter_by(asset_id=asset_id).delete()
+        db.session.delete(tool)
+        db.session.commit()
+        flash("Tool deleted successfully.", "success")
+    except IntegrityError:
+        db.session.rollback()
+        flash("Could not delete tool due to existing dependencies.", "error")
+    return redirect(url_for("tool_inventory"))
+
+@app.route("/assignments/<int:assignment_id>/delete", methods=["POST"])
+def delete_assignment(assignment_id):
+    assignment = db.get_or_404(Assignment, assignment_id)
+    try:
+        db.session.delete(assignment)
+        db.session.commit()
+        flash("Assignment deleted successfully.", "success")
+    except IntegrityError:
+        db.session.rollback()
+        flash("Could not delete assignment.", "error")
+    return redirect(url_for("assignments"))
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5001, debug=True)

@@ -228,8 +228,6 @@ body {
 }
 
 
-
-
 /* ---------------- SHARED BUTTONS ---------------- */
 /* ------------------------------------------------ */
 /* ------------------------------------------------ */
@@ -269,6 +267,14 @@ body {
 }
 .button-cancel:hover {
     background-color: #444444;
+}
+.button-delete {
+    display: block;
+    background-color: #dc3545; 
+    margin-left: auto;
+}
+.button-delete:hover{
+    background-color: #ad080d;
 }
 
 /* ---------------- SHARED FORMS ---------------- */
@@ -411,4 +417,48 @@ body {
 }
 .assignment-employee p {
     margin: 0 0 8px;
+}
+
+
+/* --------------- SHARED DETAILS ---------------- */
+/* --------------(for details pages)-------------- */
+/* ----------------------------------------------- */
+/* initally made for the assignment details page, may not be necessary/usable for tool details page
+
+/* Use the available width to display three sections per row */
+.details-container {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+    width: 100%;
+}
+
+/* Group related details inside compact cards */
+.details-section {
+    padding: 16px;
+    border: 1px solid #dddddd;
+    border-radius: 6px;
+}
+
+.details-section h2 {
+    margin: 0 0 12px;
+    font-size: 20px;
+}
+
+.details-section p {
+    margin: 6px 0;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+/* Preserve line breaks entered in the notes field */
+.details-notes {
+    white-space: pre-wrap;
+}
+
+/* Style the action buttons */
+.assignment-actions {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
 }
