@@ -332,7 +332,7 @@ def add_tool():
 @app.route("/tools/<int:asset_id>")
 def tool_details(asset_id):
     tool = db.get_or_404(Tool, asset_id)
-    return "Placeholder"
+    return render_template("tool_details.html", tool=tool)
 
 # Display the assignment form for a specific employee
 @app.route("/employees/<int:employee_id>/assign", methods=["GET", "POST"])
@@ -454,10 +454,8 @@ def assignments():
     
 @app.route("/assignments/<int:assignment_id>")
 def assignment_details(assignment_id):
-    # Find the assignment, or display a 404 if it does not exist
     assignment = db.get_or_404(Assignment, assignment_id)
 
-    # Load the employee and tool connected to this assignment
     employee = db.get_or_404(Employee, assignment.employee_id)
     tool = db.get_or_404(Tool, assignment.asset_id)
 
@@ -499,6 +497,44 @@ def tool_types():
         })
 
     return render_template("tool_types.html", tool_types=tool_type_summary)
+
+@app.route("/employees/<int:employee_id>/delete", methods=["POST"])
+def delete_employee(employee_id):
+    employee = db.get_or_404(Employee, employee_id)
+    try:
+        Assignment.query.filter_by(employee_id=employee_id).delete()
+        db.session.delete(employee)
+        db.session.commit()
+        flash("Employee deleted successfully.", "success")
+    except IntegrityError:
+        db.session.rollback()
+        flash("Could not delete employee due to existing dependencies.", "error")
+    return redirect(url_for("employees"))
+
+@app.route("/tools/<int:asset_id>/delete", methods=["POST"])
+def delete_tool(asset_id):
+    tool = db.get_or_404(Tool, asset_id)
+    try:
+        Assignment.query.filter_by(asset_id=asset_id).delete()
+        db.session.delete(tool)
+        db.session.commit()
+        flash("Tool deleted successfully.", "success")
+    except IntegrityError:
+        db.session.rollback()
+        flash("Could not delete tool due to existing dependencies.", "error")
+    return redirect(url_for("tool_inventory"))
+
+@app.route("/assignments/<int:assignment_id>/delete", methods=["POST"])
+def delete_assignment(assignment_id):
+    assignment = db.get_or_404(Assignment, assignment_id)
+    try:
+        db.session.delete(assignment)
+        db.session.commit()
+        flash("Assignment deleted successfully.", "success")
+    except IntegrityError:
+        db.session.rollback()
+        flash("Could not delete assignment.", "error")
+    return redirect(url_for("assignments"))
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5001, debug=True)

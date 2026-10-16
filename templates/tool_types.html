@@ -1,15 +1,21 @@
 {% extends "base.html" %}
 
-{% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Tool Categories & Warning Limits</h2>
-        <a href="{{ url_for('tool_inventory') }}" class="btn btn-secondary btn-sm">Back to Inventory</a>
-    </div>
-    <p class="text-muted">Live overview of equipment categories, current available stock, and threshold warnings.</p>
+{% block title %}Tool Categories & Warning Limits | ToolTrack{% endblock %}
 
-    <table class="table table-striped table-bordered mt-3">
-        <thead class="table-dark">
+{% block content %}
+<div class="list-header">
+    <h1>Tool Categories & Warning Limits</h1>
+    <a href="{{ url_for('tool_inventory') }}" class="button">Back to Inventory</a>
+</div>
+
+<p style="margin-bottom: 20px; color: #555;">
+    Live overview of equipment categories, current available stock, and threshold warnings.
+</p>
+
+{% if tool_types %}
+<div class="list-table-wrapper">
+    <table class="list-table">
+        <thead>
             <tr>
                 <th>Tool Type / Category</th>
                 <th>Available Count</th>
@@ -19,24 +25,23 @@
         </thead>
         <tbody>
             {% for item in tool_types %}
-            <tr>
+            <tr class="list-row">
                 <td><strong>{{ item.category }}</strong></td>
                 <td>{{ item.available_count }}</td>
                 <td>{{ item.warning_limit }}</td>
                 <td>
                     {% if item.is_low %}
-                        <span class="badge bg-danger">Low Stock Warning</span>
+                        <span style="color: #dc3545; font-weight: bold;">Low Stock Warning</span>
                     {% else %}
-                        <span class="badge bg-success">Normal</span>
+                        <span style="color: #28a745;">Normal</span>
                     {% endif %}
                 </td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="4" class="text-center text-muted py-4">No tool categories found in the database yet.</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+{% else %}
+<p>No tool categories found.</p>
+{% endif %}
 {% endblock %}
