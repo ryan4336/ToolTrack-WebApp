@@ -84,10 +84,6 @@
                             Assign Tool
                         </a>
                     {% endif %}
-                    <!-- Delete Button Form -->
-                    <form action="{{ url_for('delete_employee', employee_id=employee.employee_id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this employee?');">
-                        <button type="submit" class="button button-small" style="background-color: #dc3545; color: white; border: none;">Delete</button>
-                    </form>
                 </td>
                 
             </tr>

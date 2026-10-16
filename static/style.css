@@ -228,8 +228,6 @@ body {
 }
 
 
-
-
 /* ---------------- SHARED BUTTONS ---------------- */
 /* ------------------------------------------------ */
 /* ------------------------------------------------ */
@@ -269,6 +267,14 @@ body {
 }
 .button-cancel:hover {
     background-color: #444444;
+}
+.button-delete {
+    display: block;
+    background-color: #dc3545; 
+    margin-left: auto;
+}
+.button-delete:hover{
+    background-color: #ad080d;
 }
 
 /* ---------------- SHARED FORMS ---------------- */
