@@ -462,3 +462,50 @@ body {
     gap: 12px;
     margin-bottom: 20px;
 }
+
+/* ---------------- TOOL DETAILS ---------------- */
+.tool-details-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+.tool-details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.tool-details-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.tool-details-title-bar {
+    background-color: #222;
+    color: white;
+    padding: 15px 20px;
+}
+
+.tool-details-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.tool-details-table tr {
+    border-bottom: 1px solid #eee;
+}
+
+.tool-details-table td {
+    padding: 15px 20px;
+}
+
+.tool-details-table td:first-child {
+    font-weight: bold;
+    width: 35%;
+    background-color: #f8f9fa;
+}
