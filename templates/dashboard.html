@@ -2,5 +2,16 @@
 
 {% block title %}Dashboard | ToolTrack{% endblock %}
 
+
 {% block content %}
+<!-- Prevent caching/prevent user from using back arrow after logout -->
+<script>
+    window.addEventListener("pageshow", function (event) {
+        if (event.persisted) {
+            window.location.reload();
+        }
+    });
+</script>
+
+
 {% endblock %}
