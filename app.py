@@ -142,7 +142,13 @@ class Assignment(db.Model):
 # -----------------------------------
 # ----------HELPER FUNCTIONS---------
 # -----------------------------------
-
+# prevent caching of pages to avoid issues with back button after logout
+@app.after_request
+def prevent_caching(response):
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
 
 # Validate phone number and place dashes between numbers if they aren't there
 def format_phone(phone):
@@ -212,6 +218,12 @@ def login():
 # Display the dashboard page
 @app.route("/dashboard")
 def dashboard():
+    # ensure user session is still active
+    if "user_email" not in session:
+        flash("Please log in to access the dashboard.", "error")
+        return redirect(url_for("login"))
+
+    
     return render_template("dashboard.html")
 
 
@@ -590,6 +602,11 @@ def delete_assignment(assignment_id):
         db.session.rollback()
         flash("Could not delete assignment.", "error")
     return redirect(url_for("assignments"))
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5001, debug=True)
