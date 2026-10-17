@@ -171,11 +171,12 @@ def format_phone(phone):
 def login():
 
     if request.method == 'POST':
-        username = request.form.get('username', '')
-        password = request.form.get('password', '')
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '').strip()
 
         mydb = db.engine.raw_connection()
         cursor = mydb.cursor()
+    
 
         try:
             # Find the employee using their email only
@@ -186,6 +187,7 @@ def login():
             """
             cursor.execute(query, (username,))
             admin = cursor.fetchone()
+            
 
         finally:
             cursor.close()
@@ -515,15 +517,17 @@ def tool_types():
 @app.route("/change_password", methods=["GET", "POST"])
 def change_password():
     #check if user is signed in
-    if 'user_email' not in session:
-        flash("You must be signed in to change your password.", "error")
-        return redirect(url_for("login"))
+    user_email = session['user_email'].strip()
+    print("Session email:", repr(user_email))
 
-    user = db.session.get(Employee, session['user_email'])
+    # Find the employee by email
+    user = Employee.query.filter_by(email=user_email).first()
 
     if user is None:
+        print("Employee not found in database.")
         flash("Employee not found.", "error")
         return redirect(url_for("login"))
+
     
     if request.method == "POST":
         current_password = request.form.get("current_password", "").strip()
@@ -545,7 +549,6 @@ def change_password():
             user.password_hash = hashed_password
             db.session.commit()
 
-            flash("Password changed successfully!", "success")
             return redirect(url_for("dashboard"))
 
     return render_template("change_pass.html")
