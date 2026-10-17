@@ -1,17 +1,166 @@
+
 {% extends "base.html" %}
 
 {% block title %}Dashboard | ToolTrack{% endblock %}
 
-
 {% block content %}
-<!-- Prevent caching/prevent user from using back arrow after logout -->
+
+<div class="dashboard-container">
+
+    <!-- Welcome Message -->
+    <div class="dashboard-header">
+        <h1>Welcome, {{ user_name }}!</h1>
+        <p>Tool inventory overview and availability warnings.</p>
+    </div>
+
+    <!-- Tool Statistics -->
+    <div class="dashboard-stats">
+
+        <div class="stat-card">
+            <h3>Total Tools</h3>
+            <p class="stat-number">
+                {{ total_tools }}
+            </p>
+        </div>
+
+        <div class="stat-card">
+            <h3>Available</h3>
+            <p class="stat-number available">
+                {{ tool_counts["Available"] }}
+            </p>
+        </div>
+
+        <div class="stat-card">
+            <h3>Assigned</h3>
+            <p class="stat-number assigned">
+                {{ tool_counts["Assigned"] }}
+            </p>
+        </div>
+
+        <div class="stat-card">
+            <h3>Missing</h3>
+            <p class="stat-number missing">
+                {{ tool_counts["Missing"] }}
+            </p>
+        </div>
+
+        <div class="stat-card">
+            <h3>Damaged</h3>
+            <p class="stat-number damaged">
+                {{ tool_counts["Damaged"] }}
+            </p>
+        </div>
+
+        <div class="stat-card">
+            <h3>Under Repair</h3>
+            <p class="stat-number repair">
+                {{ tool_counts["Under Repair"] }}
+            </p>
+        </div>
+
+    </div>
+
+    <!-- Tool Status Overview -->
+    <div class="dashboard-section">
+
+        <h2>Inventory Status Overview</h2>
+
+        {% if total_tools > 0 %}
+
+        <div class="status-bar">
+
+            {% for status, count in tool_counts.items() %}
+
+                {% if count > 0 %}
+
+                <div
+                    class="status-segment status-{{ status|lower|replace(' ', '-') }}"
+                    style="width: {{ (count / total_tools * 100)|round(2) }}%;"
+                    title="{{ status }}: {{ count }}">
+                </div>
+
+                {% endif %}
+
+            {% endfor %}
+
+        </div>
+
+        {% else %}
+
+        <p>No tools have been added yet.</p>
+
+        {% endif %}
+
+        <div class="status-legend">
+
+            {% for status, count in tool_counts.items() %}
+
+            <span>
+                <i class="legend-dot status-{{ status|lower|replace(' ', '-') }}"></i>
+                {{ status }}: {{ count }}
+            </span>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+    <!-- Low Availability Warnings -->
+    <div class="dashboard-section">
+
+        <h2>Low Availability Warnings</h2>
+
+        {% if low_stock_alerts %}
+
+            {% for alert in low_stock_alerts %}
+
+            <div class="inventory-alert">
+
+                <strong>{{ alert.category }}</strong>
+
+                <p>
+                    Available: {{ alert.available }}
+                    | Warning Limit: {{ alert.limit }}
+                </p>
+
+                {% if alert.available == 0 %}
+
+                <span class="alert-label">
+                    OUT OF STOCK
+                </span>
+
+                {% else %}
+
+                <span class="alert-label">
+                    LOW STOCK
+                </span>
+
+                {% endif %}
+
+            </div>
+
+            {% endfor %}
+
+        {% else %}
+
+        <div class="inventory-success">
+            No low availability warnings at this time.
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+<!-- Prevent cached dashboard after logout -->
 <script>
-    window.addEventListener("pageshow", function (event) {
+    window.addEventListener("pageshow", function(event) {
         if (event.persisted) {
             window.location.reload();
         }
     });
 </script>
-
 
 {% endblock %}
