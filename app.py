@@ -218,13 +218,77 @@ def login():
 # Display the dashboard page
 @app.route("/dashboard")
 def dashboard():
-    # ensure user session is still active
+
+    # Make sure the user is logged in
     if "user_email" not in session:
         flash("Please log in to access the dashboard.", "error")
         return redirect(url_for("login"))
 
-    
-    return render_template("dashboard.html")
+    # Find the currently logged-in employee
+    user = Employee.query.filter_by(
+        email=session["user_email"]
+    ).first()
+
+    if user is None:
+        session.clear()
+        flash("Please log in again.", "error")
+        return redirect(url_for("login"))
+
+    # Count all tools in the database
+    total_tools = Tool.query.count()
+
+    # Count tools based on their status
+    statuses = [
+        "Available",
+        "Assigned",
+        "Missing",
+        "Damaged",
+        "Under Repair"
+    ]
+
+    tool_counts = {}
+
+    for status in statuses:
+        tool_counts[status] = Tool.query.filter_by(
+            status=status
+        ).count()
+
+    # Temporary warning limits until the
+    # ToolType database table is implemented
+    warning_limits = {
+        "Vacuum Pumps": 1,
+        "Recovery Machines": 2,
+        "Hand Tools": 5
+    }
+
+    # Find categories with low tool availability
+    low_stock_alerts = []
+
+    for category, limit in warning_limits.items():
+
+        available_count = Tool.query.filter_by(
+            category=category,
+            status="Available"
+        ).count()
+
+        # Trigger warning when availability
+        # is less than or equal to the limit
+        if available_count <= limit:
+
+            low_stock_alerts.append({
+                "category": category,
+                "available": available_count,
+                "limit": limit
+            })
+
+    # Load dashboard with database information
+    return render_template(
+        "dashboard.html",
+        user_name=user.name,
+        total_tools=total_tools,
+        tool_counts=tool_counts,
+        low_stock_alerts=low_stock_alerts
+    )
 
 
 # Read all employees and display them alphabetically by name.
