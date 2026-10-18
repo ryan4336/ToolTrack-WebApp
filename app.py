@@ -447,7 +447,7 @@ def add_tool():
 
         else: 
             try:
-                purchase_date = datetime.strptime(purchase_date, "%Y-%m=%d").date()
+                purchase_date = datetime.strptime(purchase_date, "%Y-%m-%d").date()
             except ValueError:
                 error = "Enter a valid purchase date"
             if not error:
@@ -458,7 +458,7 @@ def add_tool():
                 except ValueError:
                     error = "Enter a price between $0 and $999,999.99"
 
-            else:
+            if not error:
                 tool = Tool(
                     tool_name=tool_name,
                     category=category,
@@ -478,7 +478,6 @@ def add_tool():
                 except IntegrityError:
                     db.session.rollback()
                     error = "Error while saving. The Asset Tag entered may already be in use"
-
                 else:
                     return redirect (url_for("tool_inventory"))
     return render_template(
