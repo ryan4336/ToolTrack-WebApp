@@ -525,6 +525,7 @@ def tool_types():
             "warning_limit": limit,
             "is_low": is_low
         })
+    return render_template("tool_types.html", tool_types=tool_type_summary)
 
 @app.route("/change_password", methods=["GET", "POST"])
 def change_password():
