@@ -19,11 +19,13 @@
             <div class="nav-links">
                 <a href="{{ url_for('tool_inventory') }}">Tool Inventory</a>
                 <a href="{{ url_for('employees') }}">Employees</a>
+                <a href="{{ url_for('assignments') }}">Assignments</a>
+                <a href="{{ url_for('tool_types') }}">Tool Categories</a>
             </div>
 
             <div class="account-links">
-                <button type="button" disabled>Change Password</button>
-                <button type="button" disabled>Log Out</button>
+                <a href="{{ url_for('change_password') }}">Change Password</a>
+                <a href="{{ url_for('logout') }}">Log Out</a>
             </div>
         </nav>
         

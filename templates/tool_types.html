@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Tool Categories & Warning Limits | ToolTrack{% endblock %}
+
+{% block content %}
+<div class="list-header">
+    <h1>Tool Categories & Warning Limits</h1>
+    <a href="{{ url_for('tool_inventory') }}" class="button">Back to Inventory</a>
+</div>
+
+<p style="margin-bottom: 20px; color: #555;">
+    Live overview of equipment categories, current available stock, and threshold warnings.
+</p>
+
+{% if tool_types %}
+<div class="list-table-wrapper">
+    <table class="list-table">
+        <thead>
+            <tr>
+                <th>Tool Type / Category</th>
+                <th>Available Count</th>
+                <th>Warning Limit</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in tool_types %}
+            <tr class="list-row">
+                <td><strong>{{ item.category }}</strong></td>
+                <td>{{ item.available_count }}</td>
+                <td>{{ item.warning_limit }}</td>
+                <td>
+                    {% if item.is_low %}
+                        <span style="color: #dc3545; font-weight: bold;">Low Stock Warning</span>
+                    {% else %}
+                        <span style="color: #28a745;">Normal</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p>No tool categories found.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Assignment Details | ToolTrack{% endblock %}
+
+{% block content %}
+<div class="list-header">
+    <h1>Assignment #{{ assignment.assignment_id }}</h1>
+
+    <a href="{{ url_for('assignments') }}" class="button button-cancel">
+        Back to Assignments
+    </a>
+</div>
+<!-- Display assignment actions -->
+{% if assignment.active %}
+<div class="assignment-actions">
+    <button type="button" class="button">Check In</button>
+    <button type="button" class="button button-cancel">Report Missing</button>
+    <form action="{{ url_for('delete_assignment', assignment_id=assignment.assignment_id) }}" method="POST" 
+        style="display:inline;" 
+        onsubmit="return confirm('Are you sure you want to delete this assignment?');">
+        <button type="submit" 
+        class="button" 
+        style="background-color: #dc3545; color: white; border: none;">Delete</button>
+    </form>
+</div>
+{% endif %}
+
+<div class="details-container">
+    <!-- Display the employee associated with the assignment -->
+    <section class="details-section">
+        <h2>Employee</h2>
+        <p><strong>Name:</strong> {{ employee.name }}</p>
+        <p><strong>Email:</strong> {{ employee.email }}</p>
+        <p><strong>Phone:</strong> {{ employee.phone_number or "—" }}</p>
+        <p><strong>Title:</strong> {{ employee.job_title }}</p>
+        <p><strong>Status:</strong> {{ 'Active' if employee.active else 'Inactive' }}</p>
+    </section>
+
+    <!-- Show the tool's current information -->
+    <section class="details-section">
+        <h2>Tool</h2>
+        <p><strong>Tool Name:</strong> {{ tool.tool_name }}</p>
+        <p><strong>Asset Tag:</strong> {{ tool.asset_tag }}</p>
+        <p><strong>Category:</strong> {{ tool.category }}</p>
+        <p><strong>Brand:</strong> {{ tool.brand or "—" }}</p>
+        <p><strong>Model:</strong> {{ tool.model or "—" }}</p>
+        <p><strong>Serial Number:</strong> {{ tool.serial_number or "—" }}</p>
+        <p>
+            <strong>Purchase Date:</strong>
+            {{ tool.purchase_date.strftime('%m/%d/%Y') }}
+        </p>
+        <p>
+            <strong>Purchase Price:</strong>
+            ${{ "{:,.2f}".format(tool.price) }}
+        </p>
+    </section>
+
+    <!-- Display the assignment's status and dates -->
+    <section class="details-section">
+        <h2>Assignment</h2>
+        <p>
+            <strong>Status:</strong>
+            {{ "Active" if assignment.active else "Completed" }}
+        </p>
+        <p>
+            <strong>Job/Vehicle Number:</strong>
+            {{ assignment.job_vehicle_number or "—" }}
+        </p>
+        <p>
+            <strong>Date Assigned (UTC):</strong>
+            {{ assignment.date_assigned.strftime('%m/%d/%Y %I:%M %p') }}
+        </p>
+        <p>
+            <strong>Expected Return Date:</strong>
+            {{ assignment.expected_return_date.strftime('%m/%d/%Y')
+               if assignment.expected_return_date else "Not specified" }}
+        </p>
+        <p>
+            <strong>Actual Return Date (UTC):</strong>
+            {{ assignment.actual_return_date.strftime('%m/%d/%Y %I:%M %p')
+               if assignment.actual_return_date else "Not returned" }}
+        </p>
+    </section>
+
+    <!-- Show the conditions recorded for the assignment -->
+    <section class="details-section">
+        <h2>Condition</h2>
+        <p>
+            <strong>When Assigned:</strong>
+            {{ assignment.condition_when_assigned }}
+        </p>
+        <p>
+            <strong>When Returned:</strong>
+            {{ assignment.condition_when_returned or "Not recorded" }}
+        </p>
+    </section>
+
+    <!-- Only show missing information if the tool was reported missing -->
+    {% if assignment.missing_reported_date %}
+    <section class="details-section">
+        <h2>Missing Tool Information</h2>
+        <p>
+            <strong>Reported Missing (UTC):</strong>
+            {{ assignment.missing_reported_date.strftime('%m/%d/%Y %I:%M %p') }}
+        </p>
+        <p>
+            <strong>Resolved (UTC):</strong>
+            {{ assignment.missing_resolved_date.strftime('%m/%d/%Y %I:%M %p')
+               if assignment.missing_resolved_date else "Not resolved" }}
+        </p>
+    </section>
+    {% endif %}
+
+    <section class="details-section">
+        <h2>Notes</h2>
+        <p class="details-notes">{{ assignment.notes or "No notes." }}</p>
+    </section>
+</div>
+{% endblock %}

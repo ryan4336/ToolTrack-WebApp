@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Assignments | ToolTrack{% endblock %}
+
+{% block content %}
+<div class="list-header">
+    <h1>Assignments</h1>
+</div>
+
+<!-- Search and filter the assignments -->
+<div class="search-form">
+    <label for="assignment-search">Search assignments</label>
+
+    <div class="search-controls">
+        <input type="search"
+               id="assignment-search"
+               placeholder="Employee, tool name, asset tag, or job/vehicle">
+
+        <div class="dropdown-filter">
+            <label for="assignment-status">Status</label>
+            <select id="assignment-status">
+                <option value="active">Active</option>
+                <option value="inactive">Completed</option>
+                <option value="all">All</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+{% if assignments %}
+<div class="list-table-wrapper">
+    <table class="list-table">
+        <thead>
+            <tr>
+                <th>Employee</th>
+                <th>Tool Name</th>
+                <th>Asset Tag</th>
+                <th>Job/Vehicle</th>
+                <th>Date Assigned</th>
+                <th>Expected Return</th>
+                <th>Date Returned</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <!-- Each query result contains an assignment, tool, and employee -->
+            {% for assignment, tool, employee in assignments %}
+            <tr class="list-row"
+                data-search="{{ assignment.assignment_id }} {{ employee.name }} {{ employee.email }} {{ tool.tool_name }} {{ tool.asset_tag }} {{ tool.brand or '' }} {{ tool.model or '' }} {{ assignment.job_vehicle_number or '' }}"
+                data-active="{{ 'active' if assignment.active else 'inactive' }}">
+
+                <td>{{ employee.name }}</td>
+                <td>{{ tool.tool_name }}</td>
+                <td>{{ tool.asset_tag }}</td>
+                <td>{{ assignment.job_vehicle_number or "—" }}</td>
+
+                <td>
+                    {{ assignment.date_assigned.strftime('%m/%d/%Y') }}
+                </td>
+
+                <td>
+                    {{ assignment.expected_return_date.strftime('%m/%d/%Y')
+                       if assignment.expected_return_date else "—" }}
+                </td>
+
+                <td>
+                    {{ assignment.actual_return_date.strftime('%m/%d/%Y')
+                       if assignment.actual_return_date else "—" }}
+                </td>
+
+                <td>{{ "Active" if assignment.active else "Completed" }}</td>
+                <td>
+                <!-- Button to open the details page for the assignment -->
+                    <a href="{{ url_for('assignment_details', assignment_id=assignment.assignment_id) }}"
+                    class="button button-small">
+                        View
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Display this when the filters hide every assignment -->
+<p id="no-assignment-results" hidden>
+    No assignments match your search and status filter.
+</p>
+{% else %}
+<p>No assignments have been created yet.</p>
+{% endif %}
+
+<script src="{{ url_for('static', filename='assignments.js') }}" defer></script>
+{% endblock %}
