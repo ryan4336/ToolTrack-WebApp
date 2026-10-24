@@ -494,6 +494,56 @@ def tool_details(asset_id):
     tool = db.get_or_404(Tool, asset_id)
     return render_template("tool_details.html", tool=tool)
 
+@app.route("/tools/<asset_id>/edit", methods=["GET", "POST"])
+def edit_tool(asset_id):
+    tool = db.get_or_404(Tool, asset_id)
+    error = None
+
+    if request.method == "POST":
+        tool_name = request.form.get("tool_name", "").strip()
+        brand = request.form.get("brand", "").strip()
+        model = request.form.get("model", "").strip()
+        category = request.form.get("category", "").strip()
+        asset_tag = request.form.get("asset_tag", "").strip()
+        serial_number = request.form.get("serial_number", "").strip()
+        purchase_date = request.form.get("purchase_date", "").strip()
+        price = request.form.get("price", "").strip()
+        condition = request.form.get("condition", "").strip()
+        notes = request.form.get("notes", "").strip()
+
+        if not tool_name or not category or not asset_tag or not purchase_date or not price:
+            error = "Please fill out all required fields"
+        elif condition not in ("New", "Good", "Fair", "Poor", "Unknown"):
+            error = "Please select a valid condition"
+        else:
+            try:
+                purchase_date = date.fromisoformat(purchase_date)
+                price = round(float(price), 2)
+                if not (0 <= price <= 999999.99):
+                    raise ValueError
+            except ValueError:
+                error = "Enter a valid purchase date and a price between $0 and $999,999.99"
+            else:
+                tool.tool_name = tool_name
+                tool.brand = brand or None
+                tool.model = model or None
+                tool.category = category
+                tool.asset_tag = asset_tag
+                tool.serial_number = serial_number or None
+                tool.purchase_date = purchase_date
+                tool.price = price
+                tool.condition = condition
+                tool.notes = notes or None
+
+                try:
+                    db.session.commit()
+                except IntegrityError:
+                    db,session.rollback()
+                    error = "Could not save, that asset tag may currently be in use"
+                else:
+                    return redirect(url_for("tool_inventory"))
+    return render_template("edit_tools.html", tool=tool, error=error)
+
 # Display the assignment form for a specific employee
 @app.route("/employees/<int:employee_id>/assign", methods=["GET", "POST"])
 def assign_tool(employee_id):
