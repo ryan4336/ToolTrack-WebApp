@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import URL, text
 from sqlalchemy.exc import IntegrityError, OperationalError
 from datetime import datetime, date, timezone
-
+from functools import wraps
 # Load the database settings from .env
 load_dotenv()
 
@@ -145,6 +145,35 @@ def prevent_caching(response):
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"
     return response
+def login_required(f):
+    @wraps(f)
+    def admin_verification(*args, **kwargs):
+
+        # Make sure someone is logged in
+        if "user_email" not in session:
+            flash("Please log in to access this page.", "error")
+            return redirect(url_for("login"))
+
+        # Find logged-in employee
+        user = Employee.query.filter_by(
+            email=session["user_email"]
+        ).first()
+
+        # Make sure account still exists
+        if user is None:
+            session.clear()
+            flash("Please log in again.", "error")
+            return redirect(url_for("login"))
+
+        # Make sure they're an admin
+        if not user.admin:
+            session.clear()
+            flash("Admin access required.", "error")
+            return redirect(url_for("login"))
+
+        return f(*args, **kwargs)
+
+    return admin_verification
 
 # Validate phone number and place dashes between numbers if they aren't there
 def format_phone(phone):
@@ -289,7 +318,23 @@ def dashboard():
 
 # Read all employees and display them alphabetically by name.
 @app.route("/employees")
+@login_required
 def employees():
+# Make sure the user is logged in
+    if "user_email" not in session:
+        flash("Please log in to access the dashboard.", "error")
+        return redirect(url_for("login"))
+
+    # Find the currently logged-in employee
+    user = Employee.query.filter_by(
+        email=session["user_email"]
+    ).first()
+
+    if user is None:
+        session.clear()
+        flash("Please log in again.", "error")
+        return redirect(url_for("login"))
+
     employee_list = db.session.execute(
         db.select(Employee).order_by(Employee.name)
     ).scalars().all()
@@ -297,6 +342,7 @@ def employees():
     return render_template("employees.html", employees=employee_list)
 
 @app.route("/employees/add", methods=["GET", "POST"])
+@login_required
 def add_employee():
     error = None
 
@@ -346,6 +392,7 @@ def add_employee():
     return render_template("add_employee.html", error=error)
 
 @app.route("/employees/<int:employee_id>/edit", methods=["GET", "POST"])
+@login_required
 def edit_employee(employee_id):
     # Find the employee, or show a 404 page if the ID does not exist
     employee = db.get_or_404(Employee, employee_id)
@@ -397,7 +444,23 @@ def edit_employee(employee_id):
     )
 
 @app.route("/tools")
+@login_required
 def tool_inventory():
+    # Make sure the user is logged in
+    if "user_email" not in session:
+        flash("Please log in to access the tools.", "error")
+        return redirect(url_for("login"))
+
+    # Find the currently logged-in employee
+    user = Employee.query.filter_by(
+        email=session["user_email"]
+    ).first()
+
+    if user is None:
+        session.clear()
+        flash("Please log in again.", "error")
+        return redirect(url_for("login"))
+    
     # Get each tool and the employee from its active assignment, if any
     tool_list = db.session.execute(
         db.select(Tool, Employee.name)
@@ -419,6 +482,7 @@ def tool_inventory():
 allowed_statuses = ["Available", "Damaged", "Under Repair"]
 
 @app.route("/tools/add", methods=["GET", "POST"])
+@login_required 
 def add_tool():
     error = None
 
@@ -489,12 +553,14 @@ def add_tool():
 
 
 @app.route("/tools/<int:asset_id>")
+@login_required
 def tool_details(asset_id):
     tool = db.get_or_404(Tool, asset_id)
     return render_template("tool_details.html", tool=tool)
 
 # Display the assignment form for a specific employee
 @app.route("/employees/<int:employee_id>/assign", methods=["GET", "POST"])
+@login_required
 def assign_tool(employee_id):
     employee = db.get_or_404(Employee, employee_id)
     error = None
@@ -597,6 +663,7 @@ def assign_tool(employee_id):
     )
     
 @app.route("/assignments")
+@login_required
 def assignments():
     # Combine each assignment with its tool and employee.
     assignment_list = db.session.execute(
@@ -612,6 +679,7 @@ def assignments():
     )
     
 @app.route("/assignments/<int:assignment_id>")
+@login_required
 def assignment_details(assignment_id):
     assignment = db.get_or_404(Assignment, assignment_id)
 
@@ -626,6 +694,7 @@ def assignment_details(assignment_id):
     )
     
 @app.route("/tool_types")
+@login_required
 def tool_types():
     categories = db.session.execute(
         db.select(Tool.category).distinct()
@@ -657,6 +726,7 @@ def tool_types():
     return render_template("tool_types.html", tool_types=tool_type_summary)
 
 @app.route("/change_password", methods=["GET", "POST"])
+@login_required
 def change_password():
     #check if user is signed in
     user_email = session['user_email'].strip()
@@ -696,6 +766,7 @@ def change_password():
     return render_template("change_pass.html")
 
 @app.route("/employees/<int:employee_id>/delete", methods=["POST"])
+@login_required
 def delete_employee(employee_id):
     employee = db.get_or_404(Employee, employee_id)
     try:
@@ -709,6 +780,7 @@ def delete_employee(employee_id):
     return redirect(url_for("employees"))
 
 @app.route("/tools/<int:asset_id>/delete", methods=["POST"])
+@login_required
 def delete_tool(asset_id):
     tool = db.get_or_404(Tool, asset_id)
     try:
@@ -722,6 +794,7 @@ def delete_tool(asset_id):
     return redirect(url_for("tool_inventory"))
 
 @app.route("/assignments/<int:assignment_id>/delete", methods=["POST"])
+@login_required
 def delete_assignment(assignment_id):
     assignment = db.get_or_404(Assignment, assignment_id)
     try:
