@@ -1,5 +1,6 @@
 import os
-import bcrypt
+import bcrypt, string, secrets, smtplib
+from email.message import EmailMessage
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, session, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
@@ -138,6 +139,45 @@ class Assignment(db.Model):
 # -----------------------------------
 # ----------HELPER FUNCTIONS---------
 # -----------------------------------
+
+def send_admin_email(employee_email, temp_password):
+    sender_email = "SEND_EMAIL_ADDRESS"
+    app_password = "SEND_EMAIL_PASS"
+
+    message = EmailMessage()
+
+    message["Subject"] = "ToolTrack Admin Account"
+    message["From"] = sender_email
+    message["To"] = employee_email
+
+    message.set_content(f"""
+Hello,
+
+You have been given administrator access to ToolTrack.
+
+Your login information is:
+
+Temporary Password: {temp_password}
+
+Please log in and change your password.
+
+Thank you,
+ToolTrack
+""")
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+        smtp.login(sender_email, app_password)
+        smtp.send_message(message)
+
+def generate_random_password(length=12):
+    #Generate a random password with letters, digits, and punctuation.
+    if length < 8:
+        raise ValueError("Password length should be at least 8 characters.")
+
+    alphabet = string.ascii_letters + string.digits + string.punctuation
+    password = ''.join(secrets.choice(alphabet) for _ in range(length))
+    return password
+
 # prevent caching of pages to avoid issues with back button after logout
 @app.after_request
 def prevent_caching(response):
@@ -409,6 +449,7 @@ def edit_employee(employee_id):
         admin = request.form.get("admin") == "1"
         active = request.form.get("active") == "1"
 
+        was_admin = employee.admin
         if not name or not email or not job_title:
             error = "Name, email, and job title are required."
         else:
@@ -426,6 +467,15 @@ def edit_employee(employee_id):
                 employee.job_title = job_title
                 employee.admin = admin
                 employee.active = active
+
+                if not was_admin and admin:
+                    # Generate a random password for new admins
+                    random_password = generate_random_password()
+                    hashed_password = bcrypt.hashpw(
+                        random_password.encode('utf-8'),
+                        bcrypt.gensalt()
+                    ).decode('utf-8')
+                    send_admin_email(employee.email, random_password)
                 try:
                     # Save the changes to the db
                     db.session.commit()
