@@ -1,5 +1,6 @@
 import os
-import bcrypt
+import bcrypt, string, secrets, smtplib
+from email.message import EmailMessage
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, session, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
@@ -138,6 +139,45 @@ class Assignment(db.Model):
 # -----------------------------------
 # ----------HELPER FUNCTIONS---------
 # -----------------------------------
+
+def send_admin_email(employee_email, temp_password):
+    sender_email = os.getenv("SEND_EMAIL_ADDRESS")
+    app_password = os.getenv("SEND_EMAIL_PASS")
+
+    message = EmailMessage()
+
+    message["Subject"] = "ToolTrack Admin Account"
+    message["From"] = sender_email
+    message["To"] = employee_email
+
+    message.set_content(f"""
+    Hello,
+
+    You have been given administrator access to ToolTrack.
+
+    Your login information is:
+
+    Temporary Password: {temp_password}
+
+    Please log in and change your password.
+
+    Thank you,
+    ToolTrack
+""")
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+        smtp.login(sender_email, app_password)
+        smtp.send_message(message)
+
+def generate_random_password(length=12):
+    #Generate a random password with letters, digits, and punctuation.
+    if length < 8:
+        raise ValueError("Password length should be at least 8 characters.")
+
+    alphabet = string.ascii_letters + string.digits + string.punctuation
+    password = ''.join(secrets.choice(alphabet) for _ in range(length))
+    return password
+
 # prevent caching of pages to avoid issues with back button after logout
 @app.after_request
 def prevent_caching(response):
@@ -224,20 +264,26 @@ def login():
             cursor.close()
             mydb.close()
 
-        # Verify the submitted password against the bcrypt hash
-        if admin and bcrypt.checkpw(
-            password.encode('utf-8'),
-            admin[1].encode('utf-8')
-            if isinstance(admin[1], str)
-            else admin[1]
-        ):
-            session['user_email'] = admin[0]
-            return redirect(url_for('dashboard'))
+        # Make sure account and password hash exist before using bcrypt
+        if admin and admin[1]:
+            stored_hash = admin[1]
+
+            # Convert string hash to bytes if necessary
+            if isinstance(stored_hash, str):
+                stored_hash = stored_hash.encode("utf-8")
+
+            # Check submitted password
+            if bcrypt.checkpw(
+                password.encode("utf-8"),
+                stored_hash
+            ):
+                session["user_email"] = admin[0]
+                return redirect(url_for("dashboard"))
 
         flash("Invalid username or password.", "error")
-        return render_template('login.html')
+        return render_template("login.html")
 
-    return render_template('login.html')
+    return render_template("login.html")
 
 
 # Display the dashboard page
@@ -409,6 +455,7 @@ def edit_employee(employee_id):
         admin = request.form.get("admin") == "1"
         active = request.form.get("active") == "1"
 
+        was_admin = employee.admin
         if not name or not email or not job_title:
             error = "Name, email, and job title are required."
         else:
@@ -426,6 +473,16 @@ def edit_employee(employee_id):
                 employee.job_title = job_title
                 employee.admin = admin
                 employee.active = active
+
+                if not was_admin and admin:
+                    # Generate a random password for new admins
+                    random_password = generate_random_password()
+                    employee.password_hash = bcrypt.hashpw(
+                        random_password.encode('utf-8'),
+                        bcrypt.gensalt()
+                    ).decode('utf-8')
+                    send_admin_email(employee.email, random_password)
+                    flash("Admin access granted. A temporary password has been sent to the employee's email.", "success")
                 try:
                     # Save the changes to the db
                     db.session.commit()
