@@ -141,8 +141,8 @@ class Assignment(db.Model):
 # -----------------------------------
 
 def send_admin_email(employee_email, temp_password):
-    sender_email = "SEND_EMAIL_ADDRESS"
-    app_password = "SEND_EMAIL_PASS"
+    sender_email = os.getenv("SEND_EMAIL_ADDRESS")
+    app_password = os.getenv("SEND_EMAIL_PASS")
 
     message = EmailMessage()
 
@@ -151,18 +151,18 @@ def send_admin_email(employee_email, temp_password):
     message["To"] = employee_email
 
     message.set_content(f"""
-Hello,
+    Hello,
 
-You have been given administrator access to ToolTrack.
+    You have been given administrator access to ToolTrack.
 
-Your login information is:
+    Your login information is:
 
-Temporary Password: {temp_password}
+    Temporary Password: {temp_password}
 
-Please log in and change your password.
+    Please log in and change your password.
 
-Thank you,
-ToolTrack
+    Thank you,
+    ToolTrack
 """)
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
@@ -264,20 +264,26 @@ def login():
             cursor.close()
             mydb.close()
 
-        # Verify the submitted password against the bcrypt hash
-        if admin and bcrypt.checkpw(
-            password.encode('utf-8'),
-            admin[1].encode('utf-8')
-            if isinstance(admin[1], str)
-            else admin[1]
-        ):
-            session['user_email'] = admin[0]
-            return redirect(url_for('dashboard'))
+        # Make sure account and password hash exist before using bcrypt
+        if admin and admin[1]:
+            stored_hash = admin[1]
+
+            # Convert string hash to bytes if necessary
+            if isinstance(stored_hash, str):
+                stored_hash = stored_hash.encode("utf-8")
+
+            # Check submitted password
+            if bcrypt.checkpw(
+                password.encode("utf-8"),
+                stored_hash
+            ):
+                session["user_email"] = admin[0]
+                return redirect(url_for("dashboard"))
 
         flash("Invalid username or password.", "error")
-        return render_template('login.html')
+        return render_template("login.html")
 
-    return render_template('login.html')
+    return render_template("login.html")
 
 
 # Display the dashboard page
@@ -471,11 +477,12 @@ def edit_employee(employee_id):
                 if not was_admin and admin:
                     # Generate a random password for new admins
                     random_password = generate_random_password()
-                    hashed_password = bcrypt.hashpw(
+                    employee.password_hash = bcrypt.hashpw(
                         random_password.encode('utf-8'),
                         bcrypt.gensalt()
                     ).decode('utf-8')
                     send_admin_email(employee.email, random_password)
+                    flash("Admin access granted. A temporary password has been sent to the employee's email.", "success")
                 try:
                     # Save the changes to the db
                     db.session.commit()
