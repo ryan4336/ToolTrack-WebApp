@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Assignment | ToolTrack{% endblock %}
+
+{% block content %}
+<div class="form">
+    <h1 class="form-title">Edit Assignment</h1>
+    
+    {% if error %}
+        <p class="form-error">{{ error }}</p>
+    {% endif %}
+
+    <form method="POST">
+        <div class="form-group">
+            <label for="expected_return_date">Expected Return Date</label>
+            <input type="date" name="expected_return_date" id="expected_return_date" 
+                value="{{ assignment.expected_return_date.strftime('%Y-%m-%d') if assignment.expected_return_date else '' }}">
+        </div>
+
+        <div class="form-group">
+            <label for="notes">Notes</label>
+            <textarea name="notes" id="notes" rows="4">{{ assignment.notes or '' }}</textarea>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="button">Save Changes</button>
+            <a href="{{ url_for('assignment_details', assignment_id=assignment.assignment_id) }}" class="button button-cancel">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

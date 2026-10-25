@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Assign Tool | ToolTrack{% endblock %}
+
+{% block content %}
+<div class="form">
+    <h1 class="form-title">Assign Tool: {{ tool.asset_tag }}</h1>
+    
+    <!-- Display Tool Information -->
+    <div class="assignment-employee" style="background-color: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #ddd; margin-bottom: 24px;">
+        <p><strong>Name:</strong> {{ tool.tool_name }}</p>
+        <p><strong>Condition:</strong> {{ tool.condition }}</p>
+    </div>
+
+    {% if error %}
+        <p class="form-error">{{ error }}</p>
+    {% endif %}
+
+    <form method="POST">
+        <!-- 1. Select the Employee -->
+        <div class="form-group">
+            <label for="employee_id">Assign To Employee*</label>
+            <select name="employee_id" id="employee_id" required>
+                <option value="">-- Select an Employee --</option>
+                {% for emp in employees %}
+                    <option value="{{ emp.employee_id }}">{{ emp.name }} ({{ emp.job_title }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- 2. Additional Assignment Details -->
+        <div class="form-group">
+            <label for="job_vehicle_number">Job or Vehicle Number</label>
+            <input type="text" name="job_vehicle_number" id="job_vehicle_number" maxlength="150">
+        </div>
+
+        <div class="form-group">
+            <label for="expected_return_date">Expected Return Date</label>
+            <input type="date" name="expected_return_date" id="expected_return_date">
+        </div>
+
+        <div class="form-group">
+            <label for="condition_when_assigned">Condition at Checkout*</label>
+            <select name="condition_when_assigned" id="condition_when_assigned" required>
+                <option value="New" {% if tool.condition == 'New' %}selected{% endif %}>New</option>
+                <option value="Good" {% if tool.condition == 'Good' %}selected{% endif %}>Good</option>
+                <option value="Fair" {% if tool.condition == 'Fair' %}selected{% endif %}>Fair</option>
+                <option value="Poor" {% if tool.condition == 'Poor' %}selected{% endif %}>Poor</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="notes">Notes</label>
+            <textarea name="notes" id="notes" rows="4"></textarea>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="button">Confirm Assignment</button>
+            <a href="{{ url_for('tool_inventory') }}" class="button button-cancel">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

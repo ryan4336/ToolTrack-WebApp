@@ -661,6 +661,101 @@ def assign_tool(employee_id):
         tools=available_tools,
         error=error
     )
+
+@app.route("/tools/<int:asset_id>/assign", methods=["GET", "POST"])
+@login_required
+def assign_tool_by_asset(asset_id):
+    tool = db.get_or_404(Tool, asset_id)
+    error = None
+
+    # Ensure only available tools can be assigned
+    if tool.status != "Available":
+        flash("This tool is not available for assignment.", "error")
+        return redirect(url_for("tool_inventory"))
+
+    if request.method == "POST":
+        employee_id = request.form.get("employee_id", type=int)
+        job_vehicle = request.form.get("job_vehicle_number", "").strip()
+        return_date_text = request.form.get("expected_return_date", "")
+        condition = request.form.get("condition_when_assigned", "")
+        notes = request.form.get("notes", "").strip()
+
+        expected_return = None
+
+        try:
+            if return_date_text:
+                expected_return = date.fromisoformat(return_date_text)
+        except ValueError:
+            error = "Please enter a valid expected return date."
+
+        if not employee_id:
+            error = "Please select an employee."
+        elif condition not in ("New", "Good", "Fair", "Poor"):
+            error = "Please select a known condition."
+        elif len(job_vehicle) > 150:
+            error = "Job/Vehicle Number cannot exceed 150 characters."
+
+        if error is None:
+            # Lock the tool using .with_for_update() to prevent double assignments
+            locked_tool = db.session.execute(
+                db.select(Tool)
+                .where(Tool.asset_id == asset_id)
+                .with_for_update()
+            ).scalar_one_or_none()
+
+            # Check for an existing active assignment
+            existing_assignment = db.session.execute(
+                db.select(Assignment)
+                .where(
+                    Assignment.asset_id == asset_id,
+                    Assignment.active.is_(True)
+                )
+            ).scalars().first()
+
+            if locked_tool is None or locked_tool.status != "Available" or existing_assignment:
+                error = "That tool is no longer available."
+            else:
+                employee = db.get_or_404(Employee, employee_id)
+                
+                assignment = Assignment(
+                    asset_id=locked_tool.asset_id,
+                    employee_id=employee.employee_id,
+                    job_vehicle_number=job_vehicle or None,
+                    date_assigned=datetime.now(timezone.utc).replace(tzinfo=None),
+                    expected_return_date=expected_return,
+                    condition_when_assigned=condition,
+                    notes=notes or None,
+                    active=True
+                )
+
+                # Update tool status
+                locked_tool.status = "Assigned"
+                locked_tool.condition = condition
+
+                try:
+                    db.session.add(assignment)
+                    db.session.commit()
+                    return redirect(url_for("tool_inventory"))
+                except IntegrityError:
+                    db.session.rollback()
+                    error = "The assignment could not be saved."
+
+        if error:
+            db.session.rollback()
+
+    # Get a list of active employees for the dropdown selection
+    available_employees = db.session.execute(
+        db.select(Employee)
+        .where(Employee.active.is_(True))
+        .order_by(Employee.name)
+    ).scalars().all()
+
+    return render_template(
+        "assign_tool_by_asset.html",
+        tool=tool,
+        employees=available_employees,
+        error=error
+    )
     
 @app.route("/assignments")
 @login_required
@@ -691,6 +786,47 @@ def assignment_details(assignment_id):
         assignment=assignment,
         employee=employee,
         tool=tool
+    )
+
+@app.route("/assignments/<int:assignment_id>/edit", methods=["GET", "POST"])
+@login_required
+def edit_assignment(assignment_id):
+    assignment = db.get_or_404(Assignment, assignment_id)
+    error = None
+
+    # Only allow editing if the assignment is still active
+    if not assignment.active:
+        flash("You cannot edit a closed assignment.", "error")
+        return redirect(url_for('assignment_details', assignment_id=assignment.assignment_id))
+
+    if request.method == "POST":
+        return_date_text = request.form.get("expected_return_date", "")
+        notes = request.form.get("notes", "").strip()
+
+        expected_return = None
+
+        try:
+            if return_date_text:
+                expected_return = date.fromisoformat(return_date_text)
+        except ValueError:
+            error = "Please enter a valid expected return date."
+
+        if error is None:
+            # Update the fields
+            assignment.expected_return_date = expected_return
+            assignment.notes = notes or None
+
+            try:
+                db.session.commit()
+                return redirect(url_for("assignment_details", assignment_id=assignment.assignment_id))
+            except IntegrityError:
+                db.session.rollback()
+                error = "Could not update the assignment."
+
+    return render_template(
+        "edit_assignment.html",
+        assignment=assignment,
+        error=error
     )
     
 @app.route("/tool_types")

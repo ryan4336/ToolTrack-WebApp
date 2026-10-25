@@ -79,8 +79,11 @@
                 <td>{{ assigned_name or "—" }}</td>
                 <td>{{ tool.condition }}</td>
 
-                <td>
+                <td style="display: flex; gap: 8px;">
                     <a href="{{ url_for('tool_details', asset_id=tool.asset_id) }}" class="button button-small view-link">View</a>
+                    {% if tool.status == 'Available' %}
+                        <a href="{{ url_for('assign_tool_by_asset', asset_id=tool.asset_id) }}" class="button button-small" style="background-color: #28a745;">Assign</a>
+                    {% endif %}
                 </td>
             </tr>
             {% endfor %}
