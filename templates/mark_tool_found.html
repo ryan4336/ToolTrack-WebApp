@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Report Tool Found | ToolTrack{% endblock %}
+
+{% block content %}
+    <h1 class="form-title">Report Tool Found</h1>
+
+    <!-- Show an error if required information is missing or saving fails -->
+    {% if error %}
+        <p class="form-error">{{ error }}</p>
+    {% endif %}
+    
+    <div class="form-group">
+        <p><strong>Asset Tag:</strong>{{ tool.asset_tag }}</p>
+        <p><strong>Tool Name:</strong>{{ tool.tool_name }}</p>
+        <p><strong>Category:</strong>{{ tool.category }}</p>
+        <p><strong>Brand:</strong>{{ tool.brand }}</p>
+        <p><strong>Model:</strong>{{ tool.model }}</p>
+        <p><strong>Serial Number:</strong>{{ tool.serial_number }}</p>
+        <p><strong>Current Status:</strong>{{ tool.status }}</p>
+        <p><strong>Last Known Condition:</strong>{{ tool.condition }}</p>
+    </div>
+
+<form method="POST" action="{{ url_for('mark_tool_found', asset_id=tool.asset_id )}}">
+    <div class="form-group">
+        <label for="conditoin">Condition</label>
+        <select id="condition" name="condition" required>
+            <option vlaue="">Select Condition</option>
+            {% for option in conditions %}
+            <option value="{{ option }}" {% if request.form.get('condition') == option %}selected{% endif %}>{{ option }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="status">Status After Found</label>
+        <select id="status" name="status" required>
+            <option value="">Select Status</option>
+            {% for opyion in statuses %}
+            <option value ="{{ option }}" {% if request.form.get('status') == option %}selected{% endif %}>{{ option }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <button type="submit" class="btn">Mark Found</button>
+    <a href="{{ return_url }}" class="btn">Cancel</a>
+</form>
+{% endblock %}

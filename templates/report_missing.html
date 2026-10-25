@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Report Tool Missing | ToolTrack{% endblock %}
+
+{% block content %}
+<h1>Report Tool Missing</h1>
+{% if error %}
+<div class="error">{{ error }}</div>
+{% endif %}
+
+<div class="form-group">
+        <p><strong>Asset Tag:</strong>{{ tool.asset_tag }}</p>
+        <p><strong>Tool Name:</strong>{{ tool.tool_name }}</p>
+        <p><strong>Category:</strong>{{ tool.category }}</p>
+        <p><strong>Brand:</strong>{{ tool.brand }}</p>
+        <p><strong>Model:</strong>{{ tool.model }}</p>
+        <p><strong>Serial Number:</strong>{{ tool.serial_number }}</p>
+        <p><strong>Current Status:</strong>{{ tool.status }}</p>
+        <p><strong>Condition:</strong>{{ tool.condition }}</p>
+    {% if assigned_employee %}
+        <p><strong>Assigned To:</strong> {{assigned_employee.name }}</p>
+    {% endif %}
+</div>
+
+<form method="POST" action="{{ url_for('report_missing', asset_id=tool.asset_id )}}">
+    {%if assignment_id %}
+    <input type="hidden" name="assignment_id" value="{{ assignment_id }}">
+    {% endif %}
+
+    <div class="form-group">
+        <label for="notes">Notes</label>
+        <textarea id="notes" name="notes" rows="4" placeholder="Last seen, who reported it missing, etc.">{{ request.form.get('notes', tool.notes or '') }}</textarea>
+    </div>
+
+    <button type="submit" class="button">Report Missing</button>
+    <a href="{{ return_url }}" class="button">Cancel</a>
+</form>
+{% endblock %}
