@@ -246,6 +246,19 @@ body {
     cursor: pointer;
 }
 
+.button-disabled {
+    display: inline-block;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 4px;
+    background-color: grey;
+    color: var(--text-light);
+    font: inherit;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+}
+
 .button:hover {
     background-color: #87060a;
 }

@@ -232,6 +232,35 @@ def format_phone(phone):
 
     return f"{digits[:3]}-{digits[3:6]}-{digits[6:]}"
 
+#Get current time in UTC (May need to modify later to store in CST)
+def utc_time():
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
+#Add new notes to existing notes field while keeping the original notes (for missing/finding tools)
+def append_note(existing_notes, new_note):
+    if not new_note:
+        return existing_notes
+    if existing_notes:
+        return f"{existing_notes}\n{new_note}"
+    return new_note
+
+#find active tool assignment (for reporting missing)
+def get_active_assignment(asset_id, lock=False):
+    query = db.select(Assignment).where(Assignment.asset_id == asset_id, Assignment.active.is_(True))
+    if lock: 
+        query = query.with_for_update()
+    return db.session.execute(query).scalars().first()
+
+#lock tool so the same tool can't get reported missing twice 
+def get_locked_tool(asset_id):
+    return db.session.execute(db.select(Tool).where(Tool.asset_id == asset_id).with_for_update()).scalar_one_or_none()
+
+#check admin status
+def current_admin():
+    email = session.get("user_email")
+    if not email:
+        return None
+    return db.session.execute(db.select(Employee.where(Employee.email == email, Employee.admin.is_(True)))).scalar_one_or_none()
 
 # ------------------------------------
 # ---------------ROUTES---------------
@@ -635,6 +664,200 @@ def tool_details(asset_id):
     
     return render_template("tool_details.html", tool=tool, active_assignment=active_assignment)
 
+
+@app.route("/tools/<asset_id>/edit", methods=["GET", "POST"])
+def edit_tool(asset_id):
+    tool = db.get_or_404(Tool, asset_id)
+    error = None
+
+    if request.method == "POST":
+        tool_name = request.form.get("tool_name", "").strip()
+        brand = request.form.get("brand", "").strip()
+        model = request.form.get("model", "").strip()
+        category = request.form.get("category", "").strip()
+        asset_tag = request.form.get("asset_tag", "").strip()
+        serial_number = request.form.get("serial_number", "").strip()
+        purchase_date = request.form.get("purchase_date", "").strip()
+        price = request.form.get("price", "").strip()
+        condition = request.form.get("condition", "").strip()
+        notes = request.form.get("notes", "").strip()
+
+        if not tool_name or not category or not asset_tag or not purchase_date or not price:
+            error = "Please fill out all required fields"
+        elif condition not in ("New", "Good", "Fair", "Poor", "Unknown"):
+            error = "Please select a valid condition"
+        else:
+            try:
+                purchase_date = date.fromisoformat(purchase_date)
+                price = round(float(price), 2)
+                if not (0 <= price <= 999999.99):
+                    raise ValueError
+            except ValueError:
+                error = "Enter a valid purchase date and a price between $0 and $999,999.99"
+            else:
+                tool.tool_name = tool_name
+                tool.brand = brand or None
+                tool.model = model or None
+                tool.category = category
+                tool.asset_tag = asset_tag
+                tool.serial_number = serial_number or None
+                tool.purchase_date = purchase_date
+                tool.price = price
+                tool.condition = condition
+                tool.notes = notes or None
+
+                try:
+                    db.session.commit()
+                except IntegrityError:
+                    db,session.rollback()
+                    error = "Could not save, that asset tag may currently be in use"
+                else:
+                    return redirect(url_for("tool_inventory"))
+    return render_template("edit_tools.html", tool=tool, error=error)
+
+#Report missing route
+@app.route("/tools/<int:asset_id>/report-missing", methods=["GET", "POST"])
+def report_missing(asset_id):
+
+    if current_admin() is None:
+        session.clear()
+        flash("Please log in as an admin to continue.")
+        return redirect(url_for("login"))
+
+    tool= db.get_or_404(Tool, asset_id)
+    error = None
+
+    assignment_id = request.values.get("assignment_id", type=int)
+    if assignment_id:
+        return_url = url_for("assignment_details", assignment_id=assignment_id)
+    else:
+        return_url = url_for("tool_details", asset_id=asset_id)
+
+    active_assignment = get_active_assignment(asset_id)
+
+    if tool.status == "Missing":
+        flash("This tool has already been reported missing.", "error")
+        return redirect(return_url)
+
+    if assignment_id and (active_assignment is None or active_assignment.assignment_id != assignment_id):
+        flash("This assignment is no longer active so the tool cannot be reported missing from this assignment id")
+        return redirect(return_url)
+
+    if request.method == "POST":
+        notes = request.form.get("notes", "").strip()
+
+        tool = get_locked_tool(asset_id)
+        active_assignment = get_active_assignment(asset_id, lock=True)
+
+        unresolved_report = (active_assignment is not None and active_assignment.missing_reported_date is not None and active_assignment.missing.resolve_date is None)
+
+        if tool is None:
+            db.session.rollback()
+            flash("This tool could not be found", "error")
+            return redirect(url_for("tool_inventory"))
+
+        #tool already reported missing
+        if tool.status == "Missing" or unresolved_report:
+            db.session.rollback()
+            flash("This tool as already been reported missing", "error")
+            return redirect(return_url)
+
+        time_now = utc_time()
+        report_date = time_now.strftime("%Y-%m-%d")
+
+        if active_assignment:
+            if active_assignment.missing_reported_date and active_assignment.missing_resolved_date:
+                active_assignment.notes = append_note(active_assignment.notes,
+                    f"[Earlier missing report {active_assignment.missing_reported_date:%Y-%m-%d}], "
+                    f"resolved {active_assignment.missing_resolved_date:%Y-%m-%d}"
+                )
+                active_assignment.missing_resolved_date = None
+
+            active_assignment.missing_reported_date = time_now
+            if notes:
+                active_assignment.notes = append_note(active_assignment.notes, f"[Missing {report_date}] {notes}")
+        else:
+            #there is not active assignment and the associated info is being stored with the tool iteself
+            report_line = f"[Missing {report_date}] Reported missing."
+            if notes:
+                report_line += f" {notes}"
+            tool.notes = append_note(tool.notes, report_line)
+
+        tool.status = "Missing"
+
+        try:
+            db.session.commit()
+        except (IntegrityError, OperationalError):
+            db.session.rollback()
+            error = "The missing report could not be saved, please try again."
+        else:
+            flash(f"{tool.asset_tag} was reported missing.", "success")
+            return redirect(return_url)
+
+    #Who currently has the tool
+    assigned_employee = None
+    if active_assignment:
+        assigned_employee = db.session.get(Employee, active_assignment.employee_id)
+
+    return render_template("report_missing.html", tool=tool, active_assignment=active_assignment,assigned_employee=assigned_employee,
+        assignment_id=assignment_id,return_url=return_url,error=error)
+
+#found tool route
+@app.route("/tols/<int:asset_id>/mark-found",methods=["GET","POST"])
+def mark_tool_found(asset_id):
+
+    if current_admin() is None:
+        session.clear()
+        flash("Please log in as an admin to continue.")
+        return redirect(url_for("login"))
+
+    tool = db.get_or_404(Tool, asset_id)
+    error = None
+    return_url = url_for("tool_deatils", asset_id=asset_id)
+
+    statuses = [option for option in Tool.__table.c.status.type.enums if option in allowed_statuses]
+    conditions = list(Tool.__table.c.condition.type.enums)
+
+    if tool.status != "Missing":
+        flash("Only tools that are currently reported missing can be reported found.", "error")
+        return redirect(return_url)
+    if get_active_assignment(asset_id):
+        flash("This tool is still assigned. Use the Return/Check In page to recover it.", "error")
+
+    if request.method == "POST":
+        condition = request.form.get("condition", "")
+        status = request.form.get("status", "")
+
+        if not condition or not status:
+            error = "Pleaes select the tool's current condition and status"
+        elif condition not in conditions:
+            error = "Selected condition is not allowed"
+        elif status not in statuses:
+            error = "Selected status is not allowed"
+        else:
+            tool = get_locked_tool(asset_id)
+
+            if tool is None or tool.status != "Missing" or get_active_assignment(asset_id, lock=True):
+                db.session.rollback()
+                flash("This tool cannot be checked in at this time.", "error")
+                return redirect(return_url)
+
+            found_date = utc_time().strftime("%Y-%m-%d")
+            tool.status = status
+            tool.condition = condition
+            tool_notes = append_note(tool.notes, f"[FOUND: {found_date}] Marked Found. CONDITION: {condition}. STATUS: {status}")
+
+            try:
+                db.session.commit()
+            except (IntegrityError, OperationalError):
+                db.session.rollback()
+                error = "The tool could not be saved at this time. Please try again."
+            else:
+                flash(f"Tool {tool.asset_tag} was marked as found", "success")
+                return redirect(return_url)
+
+    return render_template("mark_tool_found.html", tool=tool, statuses=statuses, conditions=conditions,return_url=return_url,error=error)
+        
 
 # Display the assignment form for a specific employee
 @app.route("/employees/<int:employee_id>/assign", methods=["GET", "POST"])
