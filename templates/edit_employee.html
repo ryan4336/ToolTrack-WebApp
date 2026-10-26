@@ -4,9 +4,23 @@
 
 {% block content %}
 
-<form action="{{ url_for('delete_employee', employee_id=employee.employee_id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this employee?');">
-<button type="submit" class="button button-delete">Delete Employee</button>
-</form>
+
+{% if has_assignment_history %}
+    <p class="form-error">
+        This employee cannot be deleted because they have assignment history.
+        To preserve historical records, change their Employment Status
+        to Inactive instead.
+    </p>
+{% else %}
+    <form action="{{ url_for('delete_employee', employee_id=employee.employee_id) }}"
+          method="POST"
+          onsubmit="return confirm('Are you sure you want to permanently delete this employee?');">
+        <button type="submit" class="button button-delete">
+            Delete Employee
+        </button>
+    </form>
+{% endif %}
+
 
 <h1 class="form-title">Edit Employee</h1>
 
