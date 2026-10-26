@@ -960,17 +960,38 @@ def change_password():
 
 @app.route("/employees/<int:employee_id>/delete", methods=["POST"])
 @login_required
+
+@app.route("/employees/<int:employee_id>/delete", methods=["POST"])
+@login_required
 def delete_employee(employee_id):
     employee = db.get_or_404(Employee, employee_id)
+
+    # Check whether this employee has any assignment history.
+    has_history = db.session.execute(
+        db.select(Assignment.assignment_id)
+        .where(Assignment.employee_id == employee_id)
+        .limit(1)
+    ).first() is not None
+
+    if has_history:
+        flash(
+            "Cannot delete this employee because they have "
+            "assignment history. Mark the employee Inactive instead.",
+            "error"
+        )
+        return redirect(url_for("edit_employee", employee_id=employee_id))
+
     try:
-        Assignment.query.filter_by(employee_id=employee_id).delete()
         db.session.delete(employee)
         db.session.commit()
         flash("Employee deleted successfully.", "success")
+
     except IntegrityError:
         db.session.rollback()
         flash("Could not delete employee due to existing dependencies.", "error")
+
     return redirect(url_for("employees"))
+
 
 @app.route("/tools/<int:asset_id>/delete", methods=["POST"])
 @login_required
