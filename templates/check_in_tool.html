@@ -1,0 +1,122 @@
+
+{% extends "base.html" %}
+
+{% block title %}Check In Tool | ToolTrack{% endblock %}
+
+{% block content %}
+<div class="list-header">
+    <h1>Check In Tool</h1>
+</div>
+
+<div class="details-container">
+
+    <!-- Tool and employee information -->
+    <section class="details-section">
+        <h2>Assignment Information</h2>
+
+        <p>
+            <strong>Tool Name:</strong>
+            {{ tool.tool_name }}
+        </p>
+
+        <p>
+            <strong>Asset Tag:</strong>
+            {{ tool.asset_tag }}
+        </p>
+
+        <p>
+            <strong>Assigned Employee:</strong>
+            {{ employee.name if employee else "Unknown" }}
+        </p>
+
+        <p>
+            <strong>Current Tool Status:</strong>
+            {{ tool.status }}
+        </p>
+    </section>
+
+    <!-- Check-in form -->
+    <section class="details-section">
+        <h2>Return Information</h2>
+
+        {% if error %}
+        <p class="error-message" role="alert">
+            {{ error }}
+        </p>
+        {% endif %}
+
+        <form method="POST"
+              action="{{ url_for('check_in_tool',
+                  assignment_id=assignment.assignment_id) }}">
+
+            <!-- Remember where check-in started -->
+            <input type="hidden"
+                   name="origin"
+                   value="{{ origin }}">
+
+            <div class="form-group">
+                <label for="condition_when_returned">
+                    Return Condition *
+                </label>
+
+                <select id="condition_when_returned"
+                        name="condition_when_returned"
+                        required>
+
+                    <option value="">
+                        Select Return Condition
+                    </option>
+
+                    {% for condition in conditions %}
+                    <option value="{{ condition }}"
+                        {% if request.form.get('condition_when_returned') == condition %}
+                        selected
+                        {% endif %}>
+                        {{ condition }}
+                    </option>
+                    {% endfor %}
+
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="status">
+                    Resulting Tool Status *
+                </label>
+
+                <select id="status"
+                        name="status"
+                        required>
+
+                    <option value="">
+                        Select Tool Status
+                    </option>
+
+                    {% for status in statuses %}
+                    <option value="{{ status }}"
+                        {% if request.form.get('status') == status %}
+                        selected
+                        {% endif %}>
+                        {{ status }}
+                    </option>
+                    {% endfor %}
+
+                </select>
+            </div>
+
+            <div class="form-actions">
+
+                <button type="submit" class="button">
+                    Check In
+                </button>
+
+                <a href="{{ destination }}"
+                   class="button button-cancel">
+                    Cancel
+                </a>
+
+            </div>
+        </form>
+    </section>
+</div>
+{% endblock %}
