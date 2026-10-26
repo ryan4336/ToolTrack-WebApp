@@ -21,6 +21,12 @@
                     Check In
                 </a>
             {% endif %}
+
+            {% if tool.status == "Missing" %}
+                <button type="button" class="button-disabled" disabled>Report Missing</button>
+            {% else %}
+                <a href="{{ url_for('report_missing', asset_id=tool.asset_id) }}" class="button">Report Missing</a>
+            {% endif %}
         </div>
     </div>
 
