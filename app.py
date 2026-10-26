@@ -610,10 +610,36 @@ def add_tool():
 
 
 @app.route("/tools/<int:asset_id>")
+
+@app.route("/tools/<int:asset_id>")
 @login_required
 def tool_details(asset_id):
     tool = db.get_or_404(Tool, asset_id)
-    return render_template("tool_details.html", tool=tool)
+
+    # Find the tool's active assignment for Check In
+    active_assignment = db.session.execute(
+        db.select(Assignment)
+        .where(
+            Assignment.asset_id == asset_id,
+            Assignment.active.is_(True)
+        )
+        .order_by(Assignment.assignment_id.desc())
+    ).scalars().first()
+
+    # Check whether the tool has any assignment history
+    has_assignment_history = db.session.execute(
+        db.select(Assignment.assignment_id)
+        .where(Assignment.asset_id == asset_id)
+        .limit(1)
+    ).first() is not None
+
+    return render_template(
+        "tool_details.html",
+        tool=tool,
+        active_assignment=active_assignment,
+        has_assignment_history=has_assignment_history
+    )
+
 
 # Display the assignment form for a specific employee
 @app.route("/employees/<int:employee_id>/assign", methods=["GET", "POST"])
