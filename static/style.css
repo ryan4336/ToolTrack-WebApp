@@ -675,3 +675,67 @@ body {
     }
 
 }
+
+
+/* --------------- TOOL DETAILS ---------------- */
+/* ---------------------------------------------- */
+/* ----------------------------------------------- */
+
+/* Center the tool details and limit the page width */
+.tool-details-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+/* Place the heading and action buttons beside each other */
+.tool-details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* Give the details card rounded corners and a subtle shadow */
+.tool-details-card {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+/* Display the tool name on a charcoal background */
+.tool-details-title-bar {
+    background-color: var(--hulett-charcoal);
+    color: var(--text-light);
+    padding: 15px 20px;
+}
+
+/* Fill the card and combine adjoining table borders */
+.tool-details-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+/* Separate the information rows with a light border */
+.tool-details-table tr {
+    border-bottom: 1px solid #eeeeee;
+}
+
+/* Remove bottom border from last row */
+.tool-details-table tr:last-child {
+    border-bottom: none;
+}
+
+/* Give all cells consistent spacing */
+.tool-details-table td {
+    padding: 15px 20px;
+}
+
+/* Highlight the label column */
+.tool-details-table td:first-child {
+    width: 35%;
+    font-weight: bold;
+    background-color: #f8f9fa;
+}

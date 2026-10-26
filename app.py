@@ -1,4 +1,16 @@
+import os
+import bcrypt, string, secrets, smtplib
+from email.message import EmailMessage
+from dotenv import load_dotenv
+from flask import Flask, render_template, request, redirect, session, url_for, flash
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import URL, text
+from sqlalchemy.exc import IntegrityError, OperationalError
+from datetime import datetime, date, timezone
+from functools import wraps
 
+# Load the database settings from .env
+load_dotenv()
 
 # Create the Flask website
 app = Flask(__name__)
@@ -482,20 +494,21 @@ def edit_employee(employee_id):
                 else:
                     return redirect(url_for("employees"))
 
-    # Show the form when first opened and when saving fails
+    # Check whether this employee has any assignment history
     has_assignment_history = db.session.execute(
-    db.select(Assignment.assignment_id)
-    .where(Assignment.employee_id == employee_id)
-    .limit(1)
-).first() is not None
+        db.select(Assignment.assignment_id)
+        .where(Assignment.employee_id == employee_id)
+        .limit(1)
+    ).first() is not None
 
-return render_template(
-    "edit_employee.html",
-    employee=employee,
-    error=error,
-    has_assignment_history=has_assignment_history
-)
+    # Display the form and tell it whether assignment history exists
+    return render_template(
+        "edit_employee.html",
+        employee=employee,
+        error=error,
+        has_assignment_history=has_assignment_history
     )
+    
 
 @app.route("/tools")
 @login_required
