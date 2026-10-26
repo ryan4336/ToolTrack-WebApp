@@ -8,12 +8,18 @@
     <div class="tool-details-header">
         <h2>Tool Details: {{ tool.asset_tag }}</h2>
         <div style="display: flex; gap: 10px;">
-            {% if tool.status == 'Available' %}
-                <a href="{{ url_for('assign_tool_by_asset', asset_id=tool.asset_id) }}" class="button" style="background-color: #28a745;">Assign Tool</a>
-            {% endif %}
-            <a href="{{ url_for('tool_inventory') }}" class="button button-cancel">Back to Inventory</a>
-        </div>
-    </div>
+          
+{% if tool.status == 'Available' %}
+    <a href="{{ url_for('assign_tool_by_asset', asset_id=tool.asset_id) }}" class="button" style="background-color: #28a745;">Assign Tool</a>
+{% endif %}
+
+{% if active_assignment %}
+    <a href="{{ url_for('check_in_tool', assignment_id=active_assignment.assignment_id, origin='tool_details') }}" class="button">
+        Check In
+    </a>
+{% endif %}
+
+<a href="{{ url_for('tool_inventory') }}" class="button button-cancel">Back to Inventory</a>
 
     <div class="tool-details-card">
         <!-- Header -->
