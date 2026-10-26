@@ -8,7 +8,6 @@ from sqlalchemy import URL, text
 from sqlalchemy.exc import IntegrityError, OperationalError
 from datetime import datetime, date, timezone
 from functools import wraps
-
 # Load the database settings from .env
 load_dotenv()
 
@@ -494,21 +493,12 @@ def edit_employee(employee_id):
                 else:
                     return redirect(url_for("employees"))
 
-    # Check whether this employee has any assignment history
-    has_assignment_history = db.session.execute(
-        db.select(Assignment.assignment_id)
-        .where(Assignment.employee_id == employee_id)
-        .limit(1)
-    ).first() is not None
-
-    # Display the form and tell it whether assignment history exists
+    # Show the form when first opened and when saving fails
     return render_template(
         "edit_employee.html",
         employee=employee,
-        error=error,
-        has_assignment_history=has_assignment_history
+        error=error
     )
-    
 
 @app.route("/tools")
 @login_required
