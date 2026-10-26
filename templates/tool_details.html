@@ -59,11 +59,23 @@
     </div>
 
     <!-- Delete Tool Form -->
-    <div style="margin-top: 20px;">
-        <form action="{{ url_for('delete_tool', asset_id=tool.asset_id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this tool?');">
-            <button type="submit" class="button button-delete">Delete Tool</button>
-        </form>
-    </div>
     
+<!-- Delete Tool Form -->
+<div style="margin-top: 20px;">
+    {% if has_assignment_history %}
+        <p class="form-error">
+            This tool cannot be deleted because it has assignment history.
+            Historical assignment records must be preserved.
+        </p>
+    {% else %}
+        <form action="{{ url_for('delete_tool', asset_id=tool.asset_id) }}"
+              method="POST"
+              onsubmit="return confirm('Are you sure you want to permanently delete this tool?');">
+            <button type="submit" class="button button-delete">
+                Delete Tool
+            </button>
+        </form>
+    {% endif %}
 </div>
+
 {% endblock %}
