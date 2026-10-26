@@ -77,6 +77,15 @@
                     class="button button-small">
                         View
                     </a>
+                    <!-- Only active assignments can be checked in -->
+                    {% if assignment.active %}
+                        <a href="{{ url_for('check_in_tool',
+                                            assignment_id=assignment.assignment_id,
+                                            source='assignments') }}"
+                        class="button button-small">
+                            Check In
+                        </a>
+                    {% endif %}
                 </td>
             </tr>
             {% endfor %}

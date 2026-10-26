@@ -623,7 +623,18 @@ def add_tool():
 @login_required
 def tool_details(asset_id):
     tool = db.get_or_404(Tool, asset_id)
-    return render_template("tool_details.html", tool=tool)
+    
+    # Find the tool's current assignment
+    active_assignment = db.session.execute(
+        db.select(Assignment)
+        .where(
+            Assignment.asset_id == asset_id,
+            Assignment.active.is_(True)
+        )
+    ).scalars().first()
+    
+    return render_template("tool_details.html", tool=tool, active_assignment=active_assignment)
+
 
 # Display the assignment form for a specific employee
 @app.route("/employees/<int:employee_id>/assign", methods=["GET", "POST"])
@@ -1008,6 +1019,110 @@ def delete_assignment(assignment_id):
         db.session.rollback()
         flash("Could not delete assignment.", "error")
     return redirect(url_for("assignments"))
+
+
+@app.route("/assignments/<int:assignment_id>/check-in", methods=["GET", "POST"])
+@login_required
+def check_in_tool(assignment_id):
+    assignment = db.get_or_404(Assignment, assignment_id)
+    tool = db.get_or_404(Tool, assignment.asset_id)
+    employee = db.get_or_404(Employee, assignment.employee_id)
+    error = None
+
+    # Only allow these destinations when leaving the form
+    # This lets all three Check In buttons use the same route
+    source = request.args.get("source", "details")
+
+    if source == "assignments":
+        return_url = url_for("assignments")
+    elif source == "tool":
+        return_url = url_for("tool_details", asset_id=tool.asset_id)
+    else:
+        return_url = url_for(
+            "assignment_details",
+            assignment_id=assignment.assignment_id
+        )
+
+    # Ensure completed assignments cannot be checked in again
+    if not assignment.active:
+        flash("This assignment has already been checked in.", "error")
+        return redirect(return_url)
+
+    conditions = ["New", "Good", "Fair", "Poor", "Unknown"]
+    statuses = ["Available", "Damaged", "Under Repair"]
+
+    if request.method == "POST":
+        condition = request.form.get("condition_when_returned", "")
+        status = request.form.get("status", "")
+
+        # Check submitted values 
+        if condition not in conditions:
+            error = "Please select a return condition."
+        elif status not in statuses:
+            error = "Please select a valid tool status."
+
+        if error is None:
+            try:
+                # Lock the tool first
+                # Refresh its values in case another admin changed it
+                tool = db.session.execute(
+                    db.select(Tool)
+                    .where(Tool.asset_id == assignment.asset_id)
+                    .with_for_update()
+                    .execution_options(populate_existing=True)
+                ).scalar_one()
+
+                # Lock and refresh the assignment before checking it again
+                assignment = db.session.execute(
+                    db.select(Assignment)
+                    .where(Assignment.assignment_id == assignment_id)
+                    .with_for_update()
+                    .execution_options(populate_existing=True)
+                ).scalar_one()
+
+                # Another admin may have checked it in while this form was open
+                if not assignment.active:
+                    db.session.rollback()
+                    flash("This assignment has already been checked in.", "error")
+                    return redirect(return_url)
+
+                # Store UTC without timezone information
+                returned_at = datetime.now(timezone.utc).replace(tzinfo=None)
+
+                # Complete the existing assignment
+                assignment.actual_return_date = returned_at
+                assignment.condition_when_returned = condition
+                assignment.active = False
+
+                # Resolve an outstanding missing report when the tool returns
+                if (assignment.missing_reported_date and assignment.missing_resolved_date is None):
+                    assignment.missing_resolved_date = returned_at
+
+                # Update the tool so its current information matches the return
+                tool.condition = condition
+                tool.status = status
+
+                # Save both records together and release the locks
+                db.session.commit()
+
+            except IntegrityError:
+                # Undo both updates and release locks if saving fails
+                db.session.rollback()
+                error = "The check-in could not be saved."
+            else:
+                return redirect(return_url)
+
+    return render_template(
+        "check_in_tool.html",
+        assignment=assignment,
+        tool=tool,
+        employee=employee,
+        conditions=conditions,
+        statuses=statuses,
+        return_url=return_url,
+        error=error
+    )
+    
 
 @app.route("/logout")
 def logout():

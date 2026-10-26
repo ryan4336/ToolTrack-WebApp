@@ -12,6 +12,15 @@
                 <a href="{{ url_for('assign_tool_by_asset', asset_id=tool.asset_id) }}" class="button" style="background-color: #28a745;">Assign Tool</a>
             {% endif %}
             <a href="{{ url_for('tool_inventory') }}" class="button button-cancel">Back to Inventory</a>
+            <!-- If active assignment, allow Check In -->
+            {% if active_assignment %}
+                <a href="{{ url_for('check_in_tool',
+                                    assignment_id=active_assignment.assignment_id,
+                                    source='tool') }}"
+                class="button">
+                    Check In
+                </a>
+            {% endif %}
         </div>
     </div>
 
