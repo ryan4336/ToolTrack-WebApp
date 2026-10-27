@@ -27,6 +27,12 @@
             {% else %}
                 <a href="{{ url_for('report_missing', asset_id=tool.asset_id) }}" class="button">Report Missing</a>
             {% endif %}
+            
+            {% if tool.status == "Missing" %}
+                <a href="{{ url_for('mark_tool_found', asset_id=tool.asset_id)}}" class="button">Report Found</a>
+            {% else %}
+                <button type="button" class="button-disabled" disabled>Report Found</button>
+            {% endif %}
         </div>
     </div>
 

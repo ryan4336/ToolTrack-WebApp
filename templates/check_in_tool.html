@@ -9,6 +9,7 @@
     <p class="form-error">{{ error }}</p>
 {% endif %}
 
+
 <form method="POST" class="form">
 
     <!-- Show the tool and employee -->
@@ -59,7 +60,11 @@
         <a href="{{ return_url }}" class="button button-cancel">
             Cancel
         </a>
-
+        {% if tool.status == "Missing" %}
+            <a href="{{ url_for('mark_tool_found', asset_id=tool.asset_id)}}" class="button">Report Found</a>
+        {% else %}
+            <button type="button" class="button-disabled" disabled>Report Found</button>
+        {% endif %}
         <button type="submit" class="button">Check In</button>
     </div>
 </form>

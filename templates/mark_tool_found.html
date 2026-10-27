@@ -36,13 +36,13 @@
         <label for="status">Status After Found</label>
         <select id="status" name="status" required>
             <option value="">Select Status</option>
-            {% for opyion in statuses %}
+            {% for option in statuses %}
             <option value ="{{ option }}" {% if request.form.get('status') == option %}selected{% endif %}>{{ option }}</option>
             {% endfor %}
         </select>
     </div>
 
-    <button type="submit" class="btn">Mark Found</button>
-    <a href="{{ return_url }}" class="btn">Cancel</a>
+    <button type="submit" class="button">Mark Found</button>
+    <a href="{{ return_url }}" class="button">Cancel</a>
 </form>
 {% endblock %}

@@ -260,7 +260,9 @@ def current_admin():
     email = session.get("user_email")
     if not email:
         return None
-    return db.session.execute(db.select(Employee.where(Employee.email == email, Employee.admin.is_(True)))).scalar_one_or_none()
+    return db.session.execute(
+    db.select(Employee).where(Employee.email == email, Employee.admin.is_(True))
+).scalar_one_or_none()
 
 # ------------------------------------
 # ---------------ROUTES---------------
@@ -803,7 +805,7 @@ def report_missing(asset_id):
         assignment_id=assignment_id,return_url=return_url,error=error)
 
 #found tool route
-@app.route("/tols/<int:asset_id>/mark-found",methods=["GET","POST"])
+@app.route("/tools/<int:asset_id>/mark-found",methods=["GET","POST"])
 def mark_tool_found(asset_id):
 
     if current_admin() is None:
@@ -813,16 +815,14 @@ def mark_tool_found(asset_id):
 
     tool = db.get_or_404(Tool, asset_id)
     error = None
-    return_url = url_for("tool_deatils", asset_id=asset_id)
+    return_url = url_for("tool_details", asset_id=asset_id)
 
-    statuses = [option for option in Tool.__table.c.status.type.enums if option in allowed_statuses]
-    conditions = list(Tool.__table.c.condition.type.enums)
+    statuses = [option for option in Tool.__table__.c.status.type.enums if option in allowed_statuses]
+    conditions = list(Tool.__table__.c.condition.type.enums)
 
     if tool.status != "Missing":
         flash("Only tools that are currently reported missing can be reported found.", "error")
         return redirect(return_url)
-    if get_active_assignment(asset_id):
-        flash("This tool is still assigned. Use the Return/Check In page to recover it.", "error")
 
     if request.method == "POST":
         condition = request.form.get("condition", "")
@@ -837,7 +837,7 @@ def mark_tool_found(asset_id):
         else:
             tool = get_locked_tool(asset_id)
 
-            if tool is None or tool.status != "Missing" or get_active_assignment(asset_id, lock=True):
+            if tool is None or tool.status != "Missing":
                 db.session.rollback()
                 flash("This tool cannot be checked in at this time.", "error")
                 return redirect(return_url)
@@ -845,7 +845,7 @@ def mark_tool_found(asset_id):
             found_date = utc_time().strftime("%Y-%m-%d")
             tool.status = status
             tool.condition = condition
-            tool_notes = append_note(tool.notes, f"[FOUND: {found_date}] Marked Found. CONDITION: {condition}. STATUS: {status}")
+            tool.notes = append_note(tool.notes, f"[FOUND: {found_date}] Marked Found. CONDITION: {condition}. STATUS: {status}")
 
             try:
                 db.session.commit()
@@ -857,7 +857,7 @@ def mark_tool_found(asset_id):
                 return redirect(return_url)
 
     return render_template("mark_tool_found.html", tool=tool, statuses=statuses, conditions=conditions,return_url=return_url,error=error)
-        
+    
 
 # Display the assignment form for a specific employee
 @app.route("/employees/<int:employee_id>/assign", methods=["GET", "POST"])
