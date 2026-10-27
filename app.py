@@ -654,8 +654,8 @@ def add_tool():
 @login_required
 def tool_details(asset_id):
     tool = db.get_or_404(Tool, asset_id)
-    
-    # Find the tool's current assignment
+
+    # Find the current assignment for the Check In button
     active_assignment = db.session.execute(
         db.select(Assignment)
         .where(
@@ -663,8 +663,20 @@ def tool_details(asset_id):
             Assignment.active.is_(True)
         )
     ).scalars().first()
-    
-    return render_template("tool_details.html", tool=tool, active_assignment=active_assignment)
+
+    # Check whether the tool has ever been assigned
+    has_assignment_history = db.session.execute(
+        db.select(Assignment.assignment_id)
+        .where(Assignment.asset_id == asset_id)
+        .limit(1)
+    ).first() is not None
+
+    return render_template(
+        "tool_details.html",
+        tool=tool,
+        active_assignment=active_assignment,
+        has_assignment_history=has_assignment_history
+    )
 
 
 @app.route("/tools/<asset_id>/edit", methods=["GET", "POST"])
@@ -1206,8 +1218,23 @@ def change_password():
 @login_required
 def delete_employee(employee_id):
     employee = db.get_or_404(Employee, employee_id)
+
+    # Check all assignments, including completed assignments
+    has_assignment_history = db.session.execute(
+        db.select(Assignment.assignment_id)
+        .where(Assignment.employee_id == employee_id)
+        .limit(1)
+    ).first() is not None
+
+    if has_assignment_history:
+        flash(
+            "This employee has assignment history and cannot be deleted. "
+            "Set their employment status to Inactive instead.",
+            "error"
+        )
+        return redirect(url_for("edit_employee", employee_id=employee_id))
+
     try:
-        Assignment.query.filter_by(employee_id=employee_id).delete()
         db.session.delete(employee)
         db.session.commit()
         flash("Employee deleted successfully.", "success")
@@ -1220,8 +1247,22 @@ def delete_employee(employee_id):
 @login_required
 def delete_tool(asset_id):
     tool = db.get_or_404(Tool, asset_id)
+
+    # Check all assignments, including completed assignments
+    has_assignment_history = db.session.execute(
+        db.select(Assignment.assignment_id)
+        .where(Assignment.asset_id == asset_id)
+        .limit(1)
+    ).first() is not None
+
+    if has_assignment_history:
+        flash(
+            "This tool has assignment history and cannot be deleted.",
+            "error"
+        )
+        return redirect(url_for("tool_details", asset_id=asset_id))
+
     try:
-        Assignment.query.filter_by(asset_id=asset_id).delete()
         db.session.delete(tool)
         db.session.commit()
         flash("Tool deleted successfully.", "success")
@@ -1234,14 +1275,16 @@ def delete_tool(asset_id):
 @login_required
 def delete_assignment(assignment_id):
     assignment = db.get_or_404(Assignment, assignment_id)
-    try:
-        db.session.delete(assignment)
-        db.session.commit()
-        flash("Assignment deleted successfully.", "success")
-    except IntegrityError:
-        db.session.rollback()
-        flash("Could not delete assignment.", "error")
-    return redirect(url_for("assignments"))
+
+    # Keep assignment records to preserve checkout and return history
+    flash(
+        "Assignments cannot be deleted. Use Check In to close an active assignment.",
+        "error"
+    )
+    return redirect(url_for(
+        "assignment_details",
+        assignment_id=assignment.assignment_id
+    ))
 
 
 @app.route("/assignments/<int:assignment_id>/check-in", methods=["GET", "POST"])
