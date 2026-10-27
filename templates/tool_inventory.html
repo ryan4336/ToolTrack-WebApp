@@ -5,7 +5,15 @@
 {% block content %}
 <div class="list-header">
     <h1>Tool Inventory</h1>
-    <a href="{{ url_for('add_tool') }}" class="button">Add Tool</a>
+    <div class="header-actions">
+        <a href="{{ url_for('tool_types') }}" class="button">
+            View Tool Categories
+        </a>
+
+        <a href="{{ url_for('add_tool') }}" class="button">
+            Add Tool
+        </a>
+    </div>
 </div>
 
 

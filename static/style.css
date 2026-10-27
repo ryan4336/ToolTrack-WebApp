@@ -247,6 +247,13 @@ body {
     margin: 0;
 }
 
+/* Arrange page-header buttons beside each other with consistent spacing */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
 
 /* ---------------- SHARED BUTTONS ---------------- */
 /* ------------------------------------------------ */
@@ -523,6 +530,7 @@ body {
     font-size: 30px;
     font-weight: 700;
     margin-bottom: 8px;
+    color: var(--text-dark);
 }
 
 .dashboard-header p {
