@@ -3,9 +3,23 @@
 {% block title %}Assignments | ToolTrack{% endblock %}
 
 {% block content %}
+
 <div class="list-header">
-    <h1>Assignments</h1>
+    {% if is_history %}
+        <h1>Assignment History - {{ history_name }}</h1>
+
+        <a href="{{ return_url }}" class="button button-cancel">
+            {% if history_type == "employee" %}
+                Back to Employees
+            {% else %}
+                Back to Tool Details
+            {% endif %}
+        </a>
+    {% else %}
+        <h1>Assignments</h1>
+    {% endif %}
 </div>
+
 
 <!-- Search and filter the assignments -->
 <div class="search-form">
