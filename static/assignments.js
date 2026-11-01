@@ -49,4 +49,11 @@ statusFilter.addEventListener("change", function () {
 });
 
 // Apply the default Active filter when the page opens
-filterAssignments();
+
+
+ const defaultStatus = statusFilter.dataset.defaultStatus || "active";
+
+ statusFilter.value = defaultStatus;
+
+ // Apply the correct default filter when the page opens
+ filterAssignments();
