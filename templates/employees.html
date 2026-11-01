@@ -35,17 +35,17 @@
 {% if employees %}
 <!-- Allow horizontal scrolling if the table exceeds the available space -->
 <div class="list-table-wrapper">
-    <table class="list-table">
+    <table class="list-table sortable-table">
         <thead>
-            <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Job Title</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
+    <tr>
+        <th data-sort-type="text">Name</th>
+        <th data-sort-type="text">Email</th>
+        <th data-sort-type="text">Phone</th>
+        <th data-sort-type="text">Job Title</th>
+        <th data-sort-type="text">Status</th>
+        <th>Actions</th>
+    </tr>
+</thead>
 
         <tbody>
             <!-- Create one table row for each employee from the database -->
