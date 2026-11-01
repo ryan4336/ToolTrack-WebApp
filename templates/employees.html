@@ -78,19 +78,21 @@
                         Edit
                     </a>
                     <!-- Option to assign a tool if the employee is active -->
-                    {% if employee.active %}
-                        <a href="{{ url_for('assign_tool', employee_id=employee.employee_id) }}"
-                           class="button button-small">
-                            Assign Tool
-                        </a>
-                    {% endif %}
-                </td>
-                
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+                   
+
+{% if employee.active %}
+    <a href="{{ url_for('assign_tool', employee_id=employee.employee_id) }}"
+       class="button button-small">
+        Assign Tool
+    </a>
+{% endif %}
+
+<!-- View all assignments for this employee, including completed assignments -->
+<a href="{{ url_for('assignments', employee_id=employee.employee_id) }}"
+   class="button button-small">
+    View Assignments
+</a>
+
 <!-- JavaScript shows this only when no rows match the search -->
 <p id="no-search-results" hidden>No employees match your search and status filter.</p>
 {% else %}
