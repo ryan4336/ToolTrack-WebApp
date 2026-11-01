@@ -1,4 +1,4 @@
-import os
+import os, io, csv
 import bcrypt, string, secrets, smtplib
 from email.message import EmailMessage
 from dotenv import load_dotenv
@@ -8,6 +8,7 @@ from sqlalchemy import URL, text
 from sqlalchemy.exc import IntegrityError, OperationalError
 from datetime import datetime, date, timezone
 from functools import wraps
+from decimal import Decimal, InvalidOperation
 
 # Load the database settings from .env
 load_dotenv()
@@ -1388,7 +1389,125 @@ def check_in_tool(assignment_id):
         return_url=return_url,
         error=error
     )
-    
+
+
+@app.route("/tools/import", methods=["POST"])
+@login_required
+def import_tools():
+
+    # Make sure a file was uploaded
+    if "file" not in request.files:
+        flash("No file selected.", "error")
+        return redirect(url_for("tool_inventory"))
+
+    file = request.files["file"]
+
+    if file.filename == "":
+        flash("No file selected.", "error")
+        return redirect(url_for("tool_inventory"))
+
+    if not file.filename.lower().endswith(".csv"):
+        flash("Please upload a CSV file.", "error")
+        return redirect(url_for("tool_inventory"))
+
+    try:
+        # Read CSV as text
+        file_data = file.stream.read().decode("utf-8-sig")
+        csv_reader = csv.DictReader(io.StringIO(file_data))
+
+        # Columns our CSV must contain
+        required_columns = {
+            "asset_tag",
+            "tool_name",
+            "brand",
+            "model",
+            "serial_number",
+            "purchase_date",
+            "price",
+            "condition",
+            "notes"
+        }
+
+        # Make sure CSV headers match
+        if not required_columns.issubset(csv_reader.fieldnames or []):
+            flash("CSV file does not contain the required columns.", "error")
+            return redirect(url_for("tool_inventory"))
+
+        imported = 0
+
+        for row in csv_reader:
+
+            asset_tag = row["asset_tag"].strip()
+            tool_name = row["tool_name"].strip()
+
+            brand = row["brand"].strip() or None
+            model = row["model"].strip() or None
+            serial_number = row["serial_number"].strip() or None
+            condition = row["condition"].strip() or None
+            notes = row["notes"].strip() or None
+
+            # Convert blank purchase date to None
+            purchase_date_text = row["purchase_date"].strip()
+
+            if purchase_date_text:
+                purchase_date = datetime.strptime(purchase_date_text,"%m/%d/%Y").date()
+            else:
+                purchase_date = None
+
+            # Convert blank price to None
+            price_text = row["price"].strip()
+
+            if price_text:
+                price = Decimal(price_text)
+            else:
+                price = None
+
+            # Required values
+            if not asset_tag or not tool_name:
+                raise ValueError(f"Missing asset tag or tool name on CSV row {csv_reader.line_num}")
+
+            # Prevent duplicate asset tags already in database
+            existing_tool = Tool.query.filter_by(asset_tag=asset_tag).first()
+
+            if existing_tool:
+                raise ValueError(f"Asset tag {asset_tag} already exists.")
+
+            # Prevent duplicate serial numbers
+            if serial_number:
+                existing_serial = Tool.query.filter_by(serial_number=serial_number).first()
+                if existing_serial:
+                    raise ValueError(f"Serial number {serial_number} already exists.")
+
+            tool = Tool(
+                asset_tag=asset_tag,
+                tool_name=tool_name,
+                brand=brand,
+                model=model,
+                serial_number=serial_number,
+                purchase_date=purchase_date,
+                price=price,
+                condition=condition,
+                notes=notes
+            )
+
+            db.session.add(tool)
+            imported += 1
+
+        db.session.commit()
+
+        flash(
+            f"Successfully imported {imported} tools.", "success")
+
+    except (ValueError, InvalidOperation) as error:
+        db.session.rollback()
+        flash(f"Import failed: {error}", "error")
+
+    except Exception as error:
+        db.session.rollback()
+        print("IMPORT ERROR:", error)
+        flash(f"Import failed: {error}", "error")
+
+    return redirect(url_for("tool_inventory"))
 
 @app.route("/logout")
 def logout():
