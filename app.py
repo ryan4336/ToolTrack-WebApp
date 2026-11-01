@@ -1073,18 +1073,68 @@ def assign_tool_by_asset(asset_id):
 @app.route("/assignments")
 @login_required
 def assignments():
-    # Combine each assignment with its tool and employee.
-    assignment_list = db.session.execute(
+
+@app.route("/assignments")
+@login_required
+def assignments():
+    # Get optional employee or tool ID from the URL
+    employee_id = request.args.get("employee_id", type=int)
+    asset_id = request.args.get("asset_id", type=int)
+
+    # Track whether we're viewing assignment history
+    history_type = None
+    history_name = None
+    return_url = None
+
+    # Start with all assignments and their related records
+    query = (
         db.select(Assignment, Tool, Employee)
         .join(Tool, Assignment.asset_id == Tool.asset_id)
         .join(Employee, Assignment.employee_id == Employee.employee_id)
-        .order_by(Assignment.date_assigned.desc())
+    )
+
+    # Filter by employee if an employee ID was provided
+    if employee_id is not None:
+        employee = db.get_or_404(Employee, employee_id)
+
+        query = query.where(
+            Assignment.employee_id == employee_id
+        )
+
+        history_type = "employee"
+        history_name = employee.name
+        return_url = url_for("employees")
+
+    # Otherwise, filter by tool if an asset ID was provided
+    elif asset_id is not None:
+        tool = db.get_or_404(Tool, asset_id)
+
+        query = query.where(
+            Assignment.asset_id == asset_id
+        )
+
+        history_type = "tool"
+        history_name = tool.tool_name
+        return_url = url_for(
+            "tool_details",
+            asset_id=asset_id
+        )
+
+    # Show newest assignments first
+    assignment_list = db.session.execute(
+        query.order_by(Assignment.date_assigned.desc())
     ).all()
 
+    # Display the existing assignments page
     return render_template(
         "assignments.html",
-        assignments=assignment_list
+        assignments=assignment_list,
+        history_type=history_type,
+        history_name=history_name,
+        return_url=return_url,
+        is_history=history_type is not None
     )
+
     
 @app.route("/assignments/<int:assignment_id>")
 @login_required
