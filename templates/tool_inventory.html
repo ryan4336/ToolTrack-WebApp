@@ -13,8 +13,34 @@
         <a href="{{ url_for('add_tool') }}" class="button">
             Add Tool
         </a>
+    <form
+        action="{{ url_for('import_tools') }}"
+        method="POST"
+        enctype="multipart/form-data"
+        class="import-form">
+        <input
+            type="file"
+            id="csv-file"
+            name="file"
+            accept=".csv"
+            class="import-file-input"
+            required>
+
+        <label for="csv-file" class="import-file-label">
+            Choose CSV
+        </label>
+        <span id="file-name" class="import-file-name">
+            No file selected
+        </span>
+
+        <button type="submit" class="button">
+            Import Tools
+        </button>
+    </form>
+</div>
     </div>
 </div>
+
 
 
 <div class="search-form">
@@ -106,4 +132,16 @@
     <p>No tools have been added yet.</p>
 {% endif %}
 <script src="{{ url_for('static', filename='tool_inventory.js') }}" defer></script>
+<script>
+    const fileInput = document.getElementById("csv-file");
+    const fileName = document.getElementById("file-name");
+
+    fileInput.addEventListener("change", function () {
+        if (fileInput.files.length > 0) {
+            fileName.textContent = fileInput.files[0].name;
+        } else {
+            fileName.textContent = "No file selected";
+        }
+    });
+</script>
 {% endblock %}

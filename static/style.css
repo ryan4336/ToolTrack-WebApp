@@ -791,3 +791,44 @@ body {
     font-weight: bold;
     background-color: #f8f9fa;
 }
+/* ---------------- TOOL IMPORT ---------------- */
+
+.import-form {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Hide the browser's default file input */
+.import-file-input {
+    display: none;
+}
+
+/* Make the file picker look like a normal ToolTrack button */
+.import-file-label {
+    display: inline-block;
+    padding: 10px 16px;
+    border: 1px solid #aaaaaa;
+    border-radius: 4px;
+    background-color: #ffffff;
+    color: var(--text-dark);
+    font: inherit;
+    cursor: pointer;
+}
+
+.import-file-label:hover {
+    background-color: #eeeeee;
+}
+
+.import-file-name {
+    max-width: 180px;
+    padding: 8px 12px;
+    border: 1px solid #dddddd;
+    border-radius: 4px;
+    background-color: #f7f7f7;
+    color: #555555;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
