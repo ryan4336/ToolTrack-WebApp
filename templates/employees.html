@@ -109,5 +109,8 @@
 {% else %}
     <p>No employees have been added yet.</p>
 {% endif %}
+
 <script src="{{ url_for('static', filename='employees.js') }}" defer></script>
+<script src="{{ url_for('static', filename='table_sort.js') }}" defer></script>
+
 {% endblock %}
