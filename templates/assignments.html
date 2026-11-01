@@ -8,6 +8,7 @@
 </div>
 
 <!-- Search and filter the assignments -->
+<!-- Search and filter the assignments -->
 <div class="search-form">
     <label for="assignment-search">Search assignments</label>
 
@@ -24,7 +25,33 @@
                 <option value="all">All</option>
             </select>
         </div>
+        
+        <div class="dropdown-filter">
+            <label for="date-type">Filter By</label>
+            <select id="date-type">
+                <option value="date-assigned">Date Assigned</option>
+                <option value="expected-return">Expected Return Date</option>
+                <option value="actual-return">Date Returned</option>
+            </select>
+        </div>
+        
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <div class="dropdown-filter">
+                <label for="date-from">From (optional)</label>
+                <input type="date" id="date-from">
+            </div>
+            <span style="padding-top: 20px;">—</span>
+            <div class="dropdown-filter">
+                <label for="date-through">Through (optional)</label>
+                <input type="date" id="date-through">
+            </div>
+        </div>
     </div>
+    
+    <p style="font-size: 0.85rem; color: #666; margin-top: 10px;">
+        Leave "From" blank to include all earlier dates. Leave "Through" blank to include all later dates. To search a single day, select the same date in both fields.
+    </p>
+    <p id="date-error" class="form-error" hidden>From date cannot be after Through date.</p>
 </div>
 
 {% if assignments %}
@@ -49,7 +76,10 @@
             {% for assignment, tool, employee in assignments %}
             <tr class="list-row"
                 data-search="{{ assignment.assignment_id }} {{ employee.name }} {{ employee.email }} {{ tool.tool_name }} {{ tool.asset_tag }} {{ tool.brand or '' }} {{ tool.model or '' }} {{ assignment.job_vehicle_number or '' }}"
-                data-active="{{ 'active' if assignment.active else 'inactive' }}">
+                data-active="{{ 'active' if assignment.active else 'inactive' }}"
+                data-date-assigned="{{ (assignment.date_assigned|to_central).strftime('%Y-%m-%d') }}"
+                data-expected-return="{{ assignment.expected_return_date.strftime('%Y-%m-%d') if assignment.expected_return_date else '' }}"
+                data-actual-return="{{ (assignment.actual_return_date|to_central).strftime('%Y-%m-%d') if assignment.actual_return_date else '' }}">
 
                 <td>{{ employee.name }}</td>
                 <td>{{ tool.tool_name }}</td>
@@ -57,7 +87,7 @@
                 <td>{{ assignment.job_vehicle_number or "—" }}</td>
 
                 <td>
-                    {{ assignment.date_assigned.strftime('%m/%d/%Y') }}
+                    {{ (assignment.date_assigned|to_central).strftime('%m/%d/%Y') }}
                 </td>
 
                 <td>
@@ -66,7 +96,7 @@
                 </td>
 
                 <td>
-                    {{ assignment.actual_return_date.strftime('%m/%d/%Y')
+                    {{ (assignment.actual_return_date|to_central).strftime('%m/%d/%Y')
                        if assignment.actual_return_date else "—" }}
                 </td>
 

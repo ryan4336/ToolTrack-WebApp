@@ -7,6 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import URL, text
 from sqlalchemy.exc import IntegrityError, OperationalError
 from datetime import datetime, date, timezone
+from zoneinfo import ZoneInfo
 from functools import wraps
 
 # Load the database settings from .env
@@ -264,6 +265,15 @@ def current_admin():
     db.select(Employee).where(Employee.email == email, Employee.admin.is_(True))
 ).scalar_one_or_none()
 
+# Convert UTC database timestamps to Central Time for Jinja templates
+@app.template_filter('to_central')
+def format_central_time(dt):
+    if dt is None:
+        return None
+    # Add UTC timezone to the naive database time, then convert to Chicago time
+    aware_utc = dt.replace(tzinfo=timezone.utc)
+    return aware_utc.astimezone(ZoneInfo("America/Chicago"))
+
 # ------------------------------------
 # ---------------ROUTES---------------
 # ------------------------------------
@@ -398,7 +408,7 @@ def dashboard():
 @app.route("/employees")
 @login_required
 def employees():
-# Make sure the user is logged in
+    # Make sure the user is logged in
     if "user_email" not in session:
         flash("Please log in to access the dashboard.", "error")
         return redirect(url_for("login"))
@@ -417,7 +427,21 @@ def employees():
         db.select(Employee).order_by(Employee.name)
     ).scalars().all()
 
-    return render_template("employees.html", employees=employee_list)
+    # Calculate active assignment counts and total tool value per employee
+    employee_totals = {emp.employee_id: {"count": 0, "value": 0.00} for emp in employee_list}
+    
+    active_assignments = db.session.execute(
+        db.select(Assignment.employee_id, Tool.price)
+        .join(Tool, Assignment.asset_id == Tool.asset_id)
+        .where(Assignment.active.is_(True))
+    ).all()
+
+    for emp_id, price in active_assignments:
+        if emp_id in employee_totals:
+            employee_totals[emp_id]["count"] += 1
+            employee_totals[emp_id]["value"] += float(price)
+
+    return render_template("employees.html", employees=employee_list, totals=employee_totals)
 
 @app.route("/employees/add", methods=["GET", "POST"])
 @login_required
