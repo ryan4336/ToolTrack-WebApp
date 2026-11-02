@@ -111,22 +111,6 @@
     </section>
     {% endif %}
 
-    <!-- Only show missing information if the tool was reported missing -->
-    {% if assignment.missing_reported_date %}
-    <section class="details-section">
-        <h2>Missing Tool Information</h2>
-        <p>
-            <strong>Reported Missing (UTC):</strong>
-            {{ assignment.missing_reported_date.strftime('%m/%d/%Y %I:%M %p') }}
-        </p>
-        <p>
-            <strong>Resolved (UTC):</strong>
-            {{ assignment.missing_resolved_date.strftime('%m/%d/%Y %I:%M %p')
-               if assignment.missing_resolved_date else "Not resolved" }}
-        </p>
-    </section>
-    {% endif %}
-
     <section class="details-section">
         <h2>Notes</h2>
         <p class="details-notes">{{ assignment.notes or "No notes." }}</p>
