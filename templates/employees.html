@@ -43,8 +43,8 @@
         <th data-sort-type="text">Email</th>
         <th data-sort-type="text">Phone</th>
         <th data-sort-type="text">Job Title</th>
-        <th>Assigned Tools</th>
-        <th>Assigned Value</th>
+        <th data-sort-type="number">Assigned Tools</th>
+        <th data-sort-type="currency">Assigned Value</th>
         <th data-sort-type="text">Status</th>
         <th>Actions</th>
     </tr>
@@ -76,9 +76,15 @@
 <td data-sort-value="{{ employee.job_title }}">
     {{ employee.job_title }}
 </td>
-<!-- New calculated columns for Task 19 -->
-<td>{{ totals[employee.employee_id]['count'] }}</td>
-<td>${{ "{:,.2f}".format(totals[employee.employee_id]['value']) }}</td>
+
+<td data-sort-value="{{ totals[employee.employee_id]['count'] }}">
+    {{ totals[employee.employee_id]['count'] }}
+</td>
+
+<td data-sort-value="{{ totals[employee.employee_id]['value'] }}">
+    ${{ "{:,.2f}".format(totals[employee.employee_id]['value']) }}
+</td>
+
 <td data-sort-value="{{ 'Active' if employee.active else 'Inactive' }}">
     {{ "Active" if employee.active else "Inactive" }}
 </td>
