@@ -61,23 +61,11 @@
             
 <thead>
     <tr>
-       
-<td data-sort-value="{{ tool.asset_tag }}">
-    {{ tool.asset_tag }}
-</td>
-<td data-sort-value="{{ tool.tool_name }}">
-    {{ tool.tool_name }}
-</td>
-<td data-sort-value="{{ tool.status }}">
-    {{ tool.status }}
-</td>
-<td data-sort-value="{{ assigned_name or '' }}">
-    {{ assigned_name or "—" }}
-</td>
-<td data-sort-value="{{ tool.condition }}">
-    {{ tool.condition }}
-</td>
-
+        <th data-sort-type="text">Asset Tag</th>
+        <th data-sort-type="text">Tool Name</th>
+        <th data-sort-type="text">Status</th>
+        <th data-sort-type="text">Assigned Employee</th>
+        <th data-sort-type="text">Condition</th>
         <th>Actions</th>
     </tr>
 </thead>
