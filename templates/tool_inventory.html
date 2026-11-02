@@ -56,17 +56,33 @@
 
 {% if tools %}
 <div class="list-table-wrapper">
-    <table class="list-table">
-        <thead>
-            <tr>
-                <th>Asset Tag</th>
-                <th>Tool Name</th>
-                <th>Status</th>
-                <th>Assigned Employee</th>
-                <th>Condition</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
+    <table class="list-table sortable-table"> 
+        
+            
+<thead>
+    <tr>
+       
+<td data-sort-value="{{ tool.asset_tag }}">
+    {{ tool.asset_tag }}
+</td>
+<td data-sort-value="{{ tool.tool_name }}">
+    {{ tool.tool_name }}
+</td>
+<td data-sort-value="{{ tool.status }}">
+    {{ tool.status }}
+</td>
+<td data-sort-value="{{ assigned_name or '' }}">
+    {{ assigned_name or "—" }}
+</td>
+<td data-sort-value="{{ tool.condition }}">
+    {{ tool.condition }}
+</td>
+
+        <th>Actions</th>
+    </tr>
+</thead>
+
+      
 
         <tbody>
             <!-- Each result contains a tool and its currently assigned employee's name. -->
@@ -105,5 +121,8 @@
 {% else %}
     <p>No tools have been added yet.</p>
 {% endif %}
+
 <script src="{{ url_for('static', filename='tool_inventory.js') }}" defer></script>
+<script src="{{ url_for('static', filename='table_sort.js') }}" defer></script>
+
 {% endblock %}
