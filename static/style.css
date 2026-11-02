@@ -791,3 +791,44 @@ body {
     font-weight: bold;
     background-color: #f8f9fa;
 }
+
+/* Issue #34 - Sortable Table Headers */
+
+.sortable-table th[data-sort-type] {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    padding-right: 28px;
+    transition: background-color 0.2s ease;
+}
+
+/* Highlight sortable headers on hover */
+.sortable-table th[data-sort-type]:hover {
+    background-color: rgba(128, 128, 128, 0.15);
+}
+
+/* Keyboard accessibility */
+.sortable-table th[data-sort-type]:focus-visible {
+    outline: 2px solid #007bff;
+    outline-offset: -2px;
+}
+
+/* Default sorting indicator */
+.sortable-table th[data-sort-type]::after {
+    content: "↕";
+    position: absolute;
+    right: 10px;
+    opacity: 0.4;
+}
+
+/* Ascending */
+.sortable-table th[data-sort-direction="asc"]::after {
+    content: "↑";
+    opacity: 1;
+}
+
+/* Descending */
+.sortable-table th[data-sort-direction="desc"]::after {
+    content: "↓";
+    opacity: 1;
+}
