@@ -82,17 +82,21 @@
 
 {% if tools %}
 <div class="list-table-wrapper">
-    <table class="list-table">
-        <thead>
-            <tr>
-                <th>Asset Tag</th>
-                <th>Tool Name</th>
-                <th>Status</th>
-                <th>Assigned Employee</th>
-                <th>Condition</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
+    <table class="list-table sortable-table"> 
+        
+            
+<thead>
+    <tr>
+        <th data-sort-type="text">Asset Tag</th>
+        <th data-sort-type="text">Tool Name</th>
+        <th data-sort-type="text">Status</th>
+        <th data-sort-type="text">Assigned Employee</th>
+        <th data-sort-type="text">Condition</th>
+        <th>Actions</th>
+    </tr>
+</thead>
+
+      
 
         <tbody>
             <!-- Each result contains a tool and its currently assigned employee's name. -->
@@ -131,7 +135,10 @@
 {% else %}
     <p>No tools have been added yet.</p>
 {% endif %}
+
 <script src="{{ url_for('static', filename='tool_inventory.js') }}" defer></script>
+<script src="{{ url_for('static', filename='table_sort.js') }}" defer></script>
+
 <script>
     const fileInput = document.getElementById("csv-file");
     const fileName = document.getElementById("file-name");
