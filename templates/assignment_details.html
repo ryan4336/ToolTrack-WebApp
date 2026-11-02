@@ -67,8 +67,8 @@
             {{ assignment.job_vehicle_number or "—" }}
         </p>
         <p>
-            <strong>Date Assigned (UTC):</strong>
-            {{ assignment.date_assigned.strftime('%m/%d/%Y %I:%M %p') }}
+            <strong>Date Assigned:</strong>
+            {{ (assignment.date_assigned|to_central).strftime('%m/%d/%Y %I:%M %p %Z') }}
         </p>
         <p>
             <strong>Expected Return Date:</strong>
@@ -76,8 +76,8 @@
                if assignment.expected_return_date else "Not specified" }}
         </p>
         <p>
-            <strong>Actual Return Date (UTC):</strong>
-            {{ assignment.actual_return_date.strftime('%m/%d/%Y %I:%M %p')
+            <strong>Actual Return Date:</strong>
+            {{ (assignment.actual_return_date|to_central).strftime('%m/%d/%Y %I:%M %p %Z')
                if assignment.actual_return_date else "Not returned" }}
         </p>
     </section>
@@ -100,12 +100,12 @@
     <section class="details-section">
         <h2>Missing Tool Information</h2>
         <p>
-            <strong>Reported Missing (UTC):</strong>
-            {{ assignment.missing_reported_date.strftime('%m/%d/%Y %I:%M %p') }}
+            <strong>Reported Missing:</strong>
+            {{ (assignment.missing_reported_date|to_central).strftime('%m/%d/%Y %I:%M %p %Z') }}
         </p>
         <p>
-            <strong>Resolved (UTC):</strong>
-            {{ assignment.missing_resolved_date.strftime('%m/%d/%Y %I:%M %p')
+            <strong>Resolved:</strong>
+            {{ (assignment.missing_resolved_date|to_central).strftime('%m/%d/%Y %I:%M %p %Z')
                if assignment.missing_resolved_date else "Not resolved" }}
         </p>
     </section>
