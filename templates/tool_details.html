@@ -11,7 +11,17 @@
             {% if tool.status == 'Available' %}
                 <a href="{{ url_for('assign_tool_by_asset', asset_id=tool.asset_id) }}" class="button" style="background-color: #28a745;">Assign Tool</a>
             {% endif %}
-            <a href="{{ url_for('tool_inventory') }}" class="button button-cancel">Back to Inventory</a>
+            
+<a href="{{ url_for('tool_inventory') }}" class="button button-cancel">
+    Back to Inventory
+</a>
+
+<!-- View all assignment history for this tool -->
+<a href="{{ url_for('assignments', asset_id=tool.asset_id) }}"
+   class="button">
+    Assignment History
+</a>
+
             <!-- If active assignment, allow Check In -->
             {% if active_assignment %}
                 <a href="{{ url_for('check_in_tool',

@@ -3,9 +3,23 @@
 {% block title %}Assignments | ToolTrack{% endblock %}
 
 {% block content %}
+
 <div class="list-header">
-    <h1>Assignments</h1>
+    {% if is_history %}
+        <h1>Assignment History - {{ history_name }}</h1>
+
+        <a href="{{ return_url }}" class="button button-cancel">
+            {% if history_type == "employee" %}
+                Back to Employees
+            {% else %}
+                Back to Tool Details
+            {% endif %}
+        </a>
+    {% else %}
+        <h1>Assignments</h1>
+    {% endif %}
 </div>
+
 
 <!-- Search and filter the assignments -->
 <div class="search-form">
@@ -15,12 +29,17 @@
                id="assignment-search"
                placeholder="Employee, tool name, asset tag, or job/vehicle">
 
+        <!-- Default to All when viewing employee or tool history -->
+        {% set viewing_history = request.args.get('employee_id') or request.args.get('asset_id') %}
+
         <div class="dropdown-filter">
             <label for="assignment-status">Status</label>
             <select id="assignment-status">
                 <option value="active">Active</option>
                 <option value="inactive">Completed</option>
-                <option value="all">All</option>
+                <option value="all" {% if viewing_history %}selected{% endif %}>
+                    All
+                </option>
             </select>
         </div>
     </div>

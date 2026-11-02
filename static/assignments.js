@@ -74,5 +74,5 @@ dateTypeFilter.addEventListener("change", filterAssignments);
 dateFromInput.addEventListener("change", filterAssignments);
 dateThroughInput.addEventListener("change", filterAssignments);
 
-// Apply the default Active filter when the page opens
+// Apply the default status selected in the HTML
 filterAssignments();
