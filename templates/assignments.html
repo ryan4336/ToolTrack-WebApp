@@ -1,10 +1,22 @@
+
 {% extends "base.html" %}
 
 {% block title %}Assignments | ToolTrack{% endblock %}
 
 {% block content %}
 <div class="list-header">
-    <h1>Assignments</h1>
+    {% if is_history %}
+        <h1>Assignment History - {{ history_name }}</h1>
+        <a href="{{ return_url }}" class="button button-cancel">
+            {% if history_type == "employee" %}
+                Back to Employees
+            {% else %}
+                Back to Tool Details
+            {% endif %}
+        </a>
+    {% else %}
+        <h1>Assignments</h1>
+    {% endif %}
 </div>
 
 <!-- Search and filter the assignments -->
@@ -18,7 +30,8 @@
 
         <div class="dropdown-filter">
             <label for="assignment-status">Status</label>
-            <select id="assignment-status">
+            <select id="assignment-status"
+                    data-default-status="{{ 'all' if is_history else 'active' }}">
                 <option value="active">Active</option>
                 <option value="inactive">Completed</option>
                 <option value="all">All</option>
@@ -29,60 +42,73 @@
 
 {% if assignments %}
 <div class="list-table-wrapper">
-    <table class="list-table">
+    <table class="list-table sortable-table">
         <thead>
             <tr>
-                <th>Employee</th>
-                <th>Tool Name</th>
-                <th>Asset Tag</th>
-                <th>Job/Vehicle</th>
-                <th>Date Assigned</th>
-                <th>Expected Return</th>
-                <th>Date Returned</th>
-                <th>Status</th>
+                <th data-sort-type="text">Employee</th>
+                <th data-sort-type="text">Tool Name</th>
+                <th data-sort-type="text">Asset Tag</th>
+                <th data-sort-type="text">Job/Vehicle</th>
+                <th data-sort-type="date">Date Assigned</th>
+                <th data-sort-type="date">Expected Return</th>
+                <th data-sort-type="date">Date Returned</th>
+                <th data-sort-type="text">Status</th>
                 <th>Actions</th>
             </tr>
         </thead>
 
         <tbody>
-            <!-- Each query result contains an assignment, tool, and employee -->
+            <!-- Each result contains an assignment, tool, and employee -->
             {% for assignment, tool, employee in assignments %}
             <tr class="list-row"
                 data-search="{{ assignment.assignment_id }} {{ employee.name }} {{ employee.email }} {{ tool.tool_name }} {{ tool.asset_tag }} {{ tool.brand or '' }} {{ tool.model or '' }} {{ assignment.job_vehicle_number or '' }}"
                 data-active="{{ 'active' if assignment.active else 'inactive' }}">
 
-                <td>{{ employee.name }}</td>
-                <td>{{ tool.tool_name }}</td>
-                <td>{{ tool.asset_tag }}</td>
-                <td>{{ assignment.job_vehicle_number or "—" }}</td>
+                <td data-sort-value="{{ employee.name }}">
+                    {{ employee.name }}
+                </td>
 
-                <td>
-                    {{ assignment.date_assigned.strftime('%m/%d/%Y') }}
+                <td data-sort-value="{{ tool.tool_name }}">
+                    {{ tool.tool_name }}
+                </td>
+
+                <td data-sort-value="{{ tool.asset_tag }}">
+                    {{ tool.asset_tag }}
+                </td>
+
+                <td data-sort-value="{{ assignment.job_vehicle_number or '' }}">
+                    {{ assignment.job_vehicle_number or "—" }}
+                </td>
+
+                <td data-sort-value="{{ assignment.date_assigned.strftime('%Y-%m-%dT%H:%M:%S') if assignment.date_assigned else '' }}">
+                    {{ assignment.date_assigned.strftime('%m/%d/%Y') if assignment.date_assigned else "—" }}
+                </td>
+
+                <td data-sort-value="{{ assignment.expected_return_date.strftime('%Y-%m-%dT%H:%M:%S') if assignment.expected_return_date else '' }}">
+                    {{ assignment.expected_return_date.strftime('%m/%d/%Y') if assignment.expected_return_date else "—" }}
+                </td>
+
+                <td data-sort-value="{{ assignment.actual_return_date.strftime('%Y-%m-%dT%H:%M:%S') if assignment.actual_return_date else '' }}">
+                    {{ assignment.actual_return_date.strftime('%m/%d/%Y') if assignment.actual_return_date else "—" }}
+                </td>
+
+                <td data-sort-value="{{ 'Active' if assignment.active else 'Completed' }}">
+                    {{ "Active" if assignment.active else "Completed" }}
                 </td>
 
                 <td>
-                    {{ assignment.expected_return_date.strftime('%m/%d/%Y')
-                       if assignment.expected_return_date else "—" }}
-                </td>
-
-                <td>
-                    {{ assignment.actual_return_date.strftime('%m/%d/%Y')
-                       if assignment.actual_return_date else "—" }}
-                </td>
-
-                <td>{{ "Active" if assignment.active else "Completed" }}</td>
-                <td>
-                <!-- Button to open the details page for the assignment -->
+                    <!-- Open assignment details -->
                     <a href="{{ url_for('assignment_details', assignment_id=assignment.assignment_id) }}"
-                    class="button button-small">
+                       class="button button-small">
                         View
                     </a>
+
                     <!-- Only active assignments can be checked in -->
                     {% if assignment.active %}
                         <a href="{{ url_for('check_in_tool',
                                             assignment_id=assignment.assignment_id,
                                             source='assignments') }}"
-                        class="button button-small">
+                           class="button button-small">
                             Check In
                         </a>
                     {% endif %}
@@ -93,13 +119,20 @@
     </table>
 </div>
 
-<!-- Display this when the filters hide every assignment -->
+<!-- Display when filters hide every assignment -->
 <p id="no-assignment-results" hidden>
     No assignments match your search and status filter.
 </p>
+
 {% else %}
-<p>No assignments have been created yet.</p>
+    {% if is_history %}
+        <p>No assignment history found for {{ history_name }}.</p>
+    {% else %}
+        <p>No assignments have been created yet.</p>
+    {% endif %}
 {% endif %}
 
 <script src="{{ url_for('static', filename='assignments.js') }}" defer></script>
+<script src="{{ url_for('static', filename='table_sort.js') }}" defer></script>
+
 {% endblock %}
