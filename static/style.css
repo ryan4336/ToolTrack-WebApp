@@ -198,15 +198,18 @@ body {
 /* Fill the available width and combine cell borders */
 .list-table {
     width: 100%;
+    min-width: max-content;
     border-collapse: collapse;
 }
 
 /* Give every heading and data cell consistent spacing */
 .list-table th,
 .list-table td {
-    padding: 14px 18px;
+    padding: 10px 12px;
     text-align: left;
+    vertical-align: middle;
     border-bottom: 1px solid #dddddd;
+    white-space: nowrap;
 }
 
 /* Match the dark navigation bar */
