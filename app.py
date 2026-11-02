@@ -1069,10 +1069,6 @@ def assign_tool_by_asset(asset_id):
         employees=available_employees,
         error=error
     )
-    
-@app.route("/assignments")
-@login_required
-def assignments():
 
 @app.route("/assignments")
 @login_required

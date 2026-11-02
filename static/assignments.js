@@ -48,12 +48,5 @@ statusFilter.addEventListener("change", function () {
     filterAssignments();
 });
 
-// Apply the default Active filter when the page opens
-
-
- const defaultStatus = statusFilter.dataset.defaultStatus || "active";
-
- statusFilter.value = defaultStatus;
-
- // Apply the correct default filter when the page opens
- filterAssignments();
+// Apply the default status selected in the HTML
+filterAssignments();

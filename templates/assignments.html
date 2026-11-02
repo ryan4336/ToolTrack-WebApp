@@ -30,12 +30,17 @@
                id="assignment-search"
                placeholder="Employee, tool name, asset tag, or job/vehicle">
 
+        <!-- Default to All when viewing employee or tool history -->
+        {% set viewing_history = request.args.get('employee_id') or request.args.get('asset_id') %}
+
         <div class="dropdown-filter">
             <label for="assignment-status">Status</label>
             <select id="assignment-status">
                 <option value="active">Active</option>
                 <option value="inactive">Completed</option>
-                <option value="all">All</option>
+                <option value="all" {% if viewing_history %}selected{% endif %}>
+                    All
+                </option>
             </select>
         </div>
     </div>

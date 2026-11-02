@@ -1,3 +1,4 @@
+
 {% extends "base.html" %}
 
 {% block title %}Employees | ToolTrack{% endblock %}
@@ -11,7 +12,8 @@
         Add Employee
     </a>
 </div>
-<!-- Search bar; Use JavaScript to filter the employee rows as the user types -->
+
+<!-- Search and filter employees -->
 <div class="search-form">
     <label for="employee-search">Search employees</label>
 
@@ -20,7 +22,6 @@
                id="employee-search"
                placeholder="Name, email, phone, job title, or status">
 
-        <!-- Filter by status (active/inactive), default to Active -->
         <div class="dropdown-filter">
             <label for="employee-status">Status</label>
             <select id="employee-status">
@@ -33,7 +34,7 @@
 </div>
 
 {% if employees %}
-<!-- Allow horizontal scrolling if the table exceeds the available space -->
+
 <div class="list-table-wrapper">
     <table class="list-table">
         <thead>
@@ -48,55 +49,58 @@
         </thead>
 
         <tbody>
-            <!-- Create one table row for each employee from the database -->
-            <!-- Store each employee's information in data-search so JS script can filter the row, data-active for status -->
             {% for employee in employees %}
             <tr class="list-row"
-                data-search="
-                {{ employee.employee_id }} 
-                {{ employee.name }} 
-                {{ employee.email }} 
-                {{ employee.phone_number or '' }} 
-                {{ employee.job_title }}"
+                data-search="{{ employee.employee_id }} {{ employee.name }} {{ employee.email }} {{ employee.phone_number or '' }} {{ employee.job_title }}"
                 data-active="{{ 'active' if employee.active else 'inactive' }}">
 
-                <td>{{ employee.name }}
-                    <!-- Display indicator for admins -->
+                <td>
+                    {{ employee.name }}
                     {% if employee.admin %}
                         <span class="admin-dot" title="Admin"></span>
                     {% endif %}
                 </td>
-                
+
                 <td>{{ employee.email }}</td>
                 <td>{{ employee.phone_number or "—" }}</td>
                 <td>{{ employee.job_title }}</td>
                 <td>{{ "Active" if employee.active else "Inactive" }}</td>
-               <td>
-                    <!-- Pass the employee's ID so Flask knows which record to edit -->
+
+                <td>
+                    <!-- Edit employee -->
                     <a href="{{ url_for('edit_employee', employee_id=employee.employee_id) }}"
                        class="button button-small">
                         Edit
                     </a>
-                    <!-- Option to assign a tool if the employee is active -->
-                   
 
-{% if employee.active %}
-    <a href="{{ url_for('assign_tool', employee_id=employee.employee_id) }}"
-       class="button button-small">
-        Assign Tool
-    </a>
-{% endif %}
+                    <!-- Assign tools only to active employees -->
+                    {% if employee.active %}
+                        <a href="{{ url_for('assign_tool', employee_id=employee.employee_id) }}"
+                           class="button button-small">
+                            Assign Tool
+                        </a>
+                    {% endif %}
 
-<!-- View all assignments for this employee, including completed assignments -->
-<a href="{{ url_for('assignments', employee_id=employee.employee_id) }}"
-   class="button button-small">
-    View Assignments
-</a>
+                    <!-- View assignment history for this employee -->
+                    <a href="{{ url_for('assignments', employee_id=employee.employee_id) }}"
+                       class="button button-small">
+                        View Assignments
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 
-<!-- JavaScript shows this only when no rows match the search -->
-<p id="no-search-results" hidden>No employees match your search and status filter.</p>
+<p id="no-search-results" hidden>
+    No employees match your search and status filter.
+</p>
+
 {% else %}
     <p>No employees have been added yet.</p>
 {% endif %}
+
 <script src="{{ url_for('static', filename='employees.js') }}" defer></script>
+
 {% endblock %}
