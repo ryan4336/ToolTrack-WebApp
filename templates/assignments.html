@@ -28,7 +28,7 @@
     <div class="search-controls">
         <input type="search"
                id="assignment-search"
-               placeholder="Employee, tool name, asset tag, or job/vehicle">
+               placeholder="Employee, tool category, asset tag, or job/vehicle">
 
         <!-- Default to All when viewing employee or tool history -->
         {% set viewing_history = request.args.get('employee_id') or request.args.get('asset_id') %}
@@ -81,7 +81,7 @@
         <thead>
             <tr>
                 <th data-sort-type="text">Employee</th>
-                <th data-sort-type="text">Tool Name</th>
+                <th data-sort-type="text">Tool Category</th>
                 <th data-sort-type="text">Asset Tag</th>
                 <th data-sort-type="text">Job/Vehicle</th>
                 <th data-sort-type="date">Date Assigned</th>

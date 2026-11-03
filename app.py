@@ -59,6 +59,16 @@ except OperationalError:
 # ----------DATABASE MODELS----------
 # -----------------------------------
 
+# Store each tool name and its warning limit
+# Store tool names and their warning limits
+class ToolWarningLimit(db.Model):
+    __tablename__ = "tool_warning_limit"
+
+    tool_name = db.Column(db.String(150), primary_key=True)
+
+    # NULL means no warning limit is set
+    warning_limit = db.Column(db.Integer, nullable=True)
+
 # Describe the existing employee table so SQLAlchemy can use it
 class Employee(db.Model):
     __tablename__ = "employee"
@@ -86,7 +96,7 @@ class Tool(db.Model):
     asset_id=db.Column(db.Integer, primary_key=True)
 
     tool_name = db.Column(db.String(150), nullable=False)
-    category = db.Column(db.String(100), nullable=False)
+    
     brand = db.Column(db.String(100))
     model = db.Column(db.String(100))
     description = db.Column(db.Text)
@@ -367,33 +377,30 @@ def dashboard():
             status=status
         ).count()
 
-    # Temporary warning limits until the
-    # ToolType database table is implemented
-    warning_limits = {
-        "Vacuum Pumps": 1,
-        "Recovery Machines": 2,
-        "Hand Tools": 5
-    }
+    
+    # Find tool names with warning limits configured
+    warning_limits = ToolWarningLimit.query.filter(
+        ToolWarningLimit.warning_limit.isnot(None)
+    ).all()
 
-    # Find categories with low tool availability
     low_stock_alerts = []
 
-    for category, limit in warning_limits.items():
+    for item in warning_limits:
 
+        # Count available tools with this name
         available_count = Tool.query.filter_by(
-            category=category,
+            tool_name=item.tool_name,
             status="Available"
         ).count()
 
-        # Trigger warning when availability
-        # is less than or equal to the limit
-        if available_count <= limit:
-
+        # Check whether availability is too low
+        if available_count <= item.warning_limit:
             low_stock_alerts.append({
-                "category": category,
+                "category": item.tool_name,
                 "available": available_count,
-                "limit": limit
+                "limit": item.warning_limit
             })
+
 
     # Load dashboard with database information
     return render_template(
@@ -611,11 +618,16 @@ def add_tool():
 
     statuses = [option for option in Tool.__table__.c.status.type.enums if option in allowed_statuses]
     conditions = list(Tool.__table__.c.condition.type.enums)
+    
+    tool_names = db.session.execute(
+        db.select(ToolWarningLimit.tool_name)
+        .order_by(ToolWarningLimit.tool_name)
+    ).scalars().all()
+    
     if request.method == "POST":
         tool_name = request.form.get("tool_name", "").strip() #required
         brand = request.form.get("brand", "").strip() 
         model = request.form.get("model", "").strip() #required
-        category = request.form.get("category", "").strip() #required
         asset_tag = request.form.get("asset_tag", "").strip() #required
         serial_number = request.form.get("serial_number", "").strip()
         purchase_date = request.form.get("purchase_date", "").strip() #required
@@ -624,13 +636,16 @@ def add_tool():
         condition = request.form.get("condition", "") #required
         notes = request.form.get("notes", "").strip()
 
-        if not all([tool_name, category, asset_tag, purchase_date, price, status, condition]):
+        if not all([tool_name, asset_tag, purchase_date, price, status, condition]):
             error = "Please fill in all required fields"
 
+        elif tool_name not in tool_names:
+            error = "Please select a valid tool category"
         elif status not in statuses: 
             error = "Selected status is not allowed"
         elif condition not in conditions: 
             error = "Selected condition is not allowed"
+        
 
         else: 
             try:
@@ -648,7 +663,6 @@ def add_tool():
             if not error:
                 tool = Tool(
                     tool_name=tool_name,
-                    category=category,
                     brand=brand or None,
                     model=model or None,
                     asset_tag=asset_tag,
@@ -672,6 +686,7 @@ def add_tool():
         error=error,
         statuses=statuses,
         conditions=conditions,
+        tool_names=tool_names
     )
 
 
@@ -708,12 +723,17 @@ def tool_details(asset_id):
 def edit_tool(asset_id):
     tool = db.get_or_404(Tool, asset_id)
     error = None
+    
+    # Get existing tool names for the dropdown
+    tool_names = db.session.execute(
+        db.select(ToolWarningLimit.tool_name)
+        .order_by(ToolWarningLimit.tool_name)
+    ).scalars().all()
 
     if request.method == "POST":
         tool_name = request.form.get("tool_name", "").strip()
         brand = request.form.get("brand", "").strip()
         model = request.form.get("model", "").strip()
-        category = request.form.get("category", "").strip()
         asset_tag = request.form.get("asset_tag", "").strip()
         serial_number = request.form.get("serial_number", "").strip()
         purchase_date = request.form.get("purchase_date", "").strip()
@@ -721,8 +741,10 @@ def edit_tool(asset_id):
         condition = request.form.get("condition", "").strip()
         notes = request.form.get("notes", "").strip()
 
-        if not tool_name or not category or not asset_tag or not purchase_date or not price:
+        if not tool_name or not asset_tag or not purchase_date or not price:
             error = "Please fill out all required fields"
+        elif tool_name not in tool_names:
+            error = "Please select a valid tool category"
         elif condition not in ("New", "Good", "Fair", "Poor", "Unknown"):
             error = "Please select a valid condition"
         else:
@@ -737,7 +759,6 @@ def edit_tool(asset_id):
                 tool.tool_name = tool_name
                 tool.brand = brand or None
                 tool.model = model or None
-                tool.category = category
                 tool.asset_tag = asset_tag
                 tool.serial_number = serial_number or None
                 tool.purchase_date = purchase_date
@@ -748,11 +769,11 @@ def edit_tool(asset_id):
                 try:
                     db.session.commit()
                 except IntegrityError:
-                    db,session.rollback()
+                    db.session.rollback()
                     error = "Could not save, that asset tag may currently be in use"
                 else:
                     return redirect(url_for("tool_inventory"))
-    return render_template("edit_tools.html", tool=tool, error=error)
+    return render_template("edit_tools.html", tool=tool, error=error, tool_names=tool_names)
 
 #Report missing route
 @app.route("/tools/<int:asset_id>/report-missing", methods=["GET", "POST"])

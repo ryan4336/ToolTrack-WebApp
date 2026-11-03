@@ -11,15 +11,32 @@
 
 <form method="POST" class="form" id="add-tool-form" action="{{ url_for('add_tool') }}">
         <div class="form-group">
-            <label for="tool_name">Tool Name</label>
+            <label for="asset_tag">Asset Tag</label>
             <input
                 type="text"
-                id="tool_name"
-                name="tool_name"
-                maxlength="150"
-                value="{{ request.form.get('tool_name', '') }}"
+                id="asset_tag"
+                name="asset_tag"
+                maxlength="50"
+                value="{{ request.form.get('asset_tag', '') }}"
                 required
             >
+        </div>
+        <!-- Select an existing tool name -->
+        <div class="form-group">
+            <label for="tool_name">Tool Category</label>
+            <select id="tool_name" name="tool_name" required>
+                <option value="" disabled
+                    {% if not request.form.get('tool_name') %}selected{% endif %}>
+                    Select a Tool Category
+                </option>
+
+                {% for name in tool_names %}
+                    <option value="{{ name }}"
+                        {% if request.form.get('tool_name') == name %}selected{% endif %}>
+                        {{ name }}
+                    </option>
+                {% endfor %}
+            </select>
         </div>
 
         <div class="form-group">
@@ -41,30 +58,6 @@
                 name="model"
                 maxlength="100"
                 value="{{ request.form.get('model', '') }}"
-            >
-        </div>
-
-        <div class="form-group">
-            <label for="category">Category</label>
-            <input
-                type="text"
-                id="category"
-                name="category"
-                maxlength="100"
-                value="{{ request.form.get('category', '') }}"
-                required
-            >
-        </div>
-
-        <div class="form-group">
-            <label for="asset_tag">Asset Tag</label>
-            <input
-                type="text"
-                id="asset_tag"
-                name="asset_tag"
-                maxlength="50"
-                value="{{ request.form.get('asset_tag', '') }}"
-                required
             >
         </div>
 

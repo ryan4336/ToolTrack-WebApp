@@ -11,11 +11,31 @@
 {% endif %}
 
 <form method="POST" class="form" id="edit-tool-form">
+
     <div class="form-group">
-        <label for="tool_name">Tool Name</label>
-        <input type="text" id="tool_name" name="tool_name"
-            value="{{ request.form.get('tool_name', tool.tool_name) }}"
-            maxlength="150" required>
+        <label for="asset_tag">Asset Tag</label>
+        <input type="text" id="asset_tag" name="asset_tag"
+            value="{{ request.form.get('asset_tag', tool.asset_tag) }}"
+            maxlength="50" required>
+    </div>
+    
+    <!-- Select an existing tool name -->
+    <div class="form-group">
+        <label for="tool_name">Tool Category</label>
+        <select id="tool_name" name="tool_name" required>
+            <option value="" disabled>
+                Select a Tool Category
+            </option>
+
+            {% for name in tool_names %}
+                <option value="{{ name }}"
+                    {% if request.form.get('tool_name', tool.tool_name) == name %}
+                        selected
+                    {% endif %}>
+                    {{ name }}
+                </option>
+            {% endfor %}
+        </select>
     </div>
 
     <div class="form-group">
@@ -30,20 +50,6 @@
         <input type="text" id="model" name="model"
             value="{{ request.form.get('model', tool.model) }}"
             maxlength="100">
-    </div>
-
-    <div class="form-group">
-        <label for="category">Category</label>
-        <input type="text" id="category" name="category"
-            value="{{ request.form.get('category', tool.category) }}"
-            maxlength="100" required>
-    </div>
-
-    <div class="form-group">
-        <label for="asset_tag">Asset Tag</label>
-        <input type="text" id="asset_tag" name="asset_tag"
-            value="{{ request.form.get('asset_tag', tool.asset_tag) }}"
-            maxlength="50" required>
     </div>
 
     <div class="form-group">
