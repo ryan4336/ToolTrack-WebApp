@@ -1482,18 +1482,18 @@ def check_in_tool(assignment_id):
     )
 
 
+
 @app.route("/tools/import", methods=["POST"])
 @login_required
 def import_tools():
 
-    # Make sure a file was uploaded
     if "file" not in request.files:
         flash("No file selected.", "error")
         return redirect(url_for("tool_inventory"))
 
     file = request.files["file"]
 
-    if file.filename == "":
+    if not file.filename:
         flash("No file selected.", "error")
         return redirect(url_for("tool_inventory"))
 
@@ -1502,11 +1502,9 @@ def import_tools():
         return redirect(url_for("tool_inventory"))
 
     try:
-        # Read CSV as text
         file_data = file.stream.read().decode("utf-8-sig")
         csv_reader = csv.DictReader(io.StringIO(file_data))
 
-        # Columns the CSV must contain
         required_columns = {
             "asset_tag",
             "tool_name",
@@ -1519,81 +1517,115 @@ def import_tools():
             "notes"
         }
 
-        # Make sure CSV headers match
-        if not required_columns.issubset(csv_reader.fieldnames or []):
-            flash("CSV file does not contain the required columns.", "error")
-            return redirect(url_for("tool_inventory"))
+        if csv_reader.fieldnames:
+            csv_reader.fieldnames = [
+                name.strip() for name in csv_reader.fieldnames
+            ]
 
-        imported = 0
+        if not required_columns.issubset(csv_reader.fieldnames or []):
+            missing = required_columns - set(csv_reader.fieldnames or [])
+            raise ValueError(
+                f"Missing CSV columns: {', '.join(sorted(missing))}"
+            )
+
+        tools_to_add = []
+        csv_asset_tags = set()
+        csv_serial_numbers = set()
+
+        # Load existing identifiers once instead of querying
+        # the database separately for every CSV row.
+        existing_asset_tags = set(
+            db.session.scalars(db.select(Tool.asset_tag)).all()
+        )
+
+        existing_serial_numbers = set(
+            db.session.scalars(
+                db.select(Tool.serial_number)
+                .where(Tool.serial_number.isnot(None))
+            ).all()
+        )
 
         for row in csv_reader:
 
-            asset_tag = row["asset_tag"].strip()
-            tool_name = row["tool_name"].strip()
+            row_number = csv_reader.line_num
 
-            brand = row["brand"].strip() or None
-            model = row["model"].strip() or None
-            serial_number = row["serial_number"].strip() or None
-            condition = row["condition"].strip() or None
-            notes = row["notes"].strip() or None
-            
+            asset_tag = (row["asset_tag"] or "").strip()
+            tool_name = (row["tool_name"] or "").strip()
+            brand = (row["brand"] or "").strip() or None
+            model = (row["model"] or "").strip() or None
+            serial_number = (
+                (row["serial_number"] or "").strip() or None
+            )
+            condition = (row["condition"] or "").strip() or None
+            notes = (row["notes"] or "").strip() or None
 
-            # Convert blank purchase date to None
-            purchase_date_text = row["purchase_date"].strip()
+            purchase_date_text = (
+                (row["purchase_date"] or "").strip()
+            )
 
             if purchase_date_text:
-                purchase_date = datetime.strptime(purchase_date_text,"%m/%d/%Y").date()
+                purchase_date = datetime.strptime(
+                    purchase_date_text, "%m/%d/%Y"
+                ).date()
             else:
                 purchase_date = None
 
-            # Convert blank price to None
-            price_text = row["price"].strip()
+            price_text = (row["price"] or "").strip()
+            price = Decimal(price_text) if price_text else None
 
-            if price_text:
-                price = Decimal(price_text)
-            else:
-                price = None
-
-            # Required values
             if not asset_tag or not tool_name:
-                raise ValueError(f"Missing asset tag or tool name on CSV row {csv_reader.line_num}")
+                raise ValueError(
+                    f"Missing asset tag or tool name on row {row_number}"
+                )
 
-            # Prevent duplicate asset tags already in database
-            existing_tool = Tool.query.filter_by(asset_tag=asset_tag).first()
+            if asset_tag in existing_asset_tags:
+                raise ValueError(
+                    f"Asset tag {asset_tag} already exists."
+                )
 
-            if existing_tool:
-                raise ValueError(f"Asset tag {asset_tag} already exists.")
+            if asset_tag in csv_asset_tags:
+                raise ValueError(
+                    f"Duplicate asset tag {asset_tag} in CSV."
+                )
 
-            # Prevent duplicate serial numbers
             if serial_number:
-                existing_serial = Tool.query.filter_by(serial_number=serial_number).first()
-                if existing_serial:
-                    raise ValueError(f"Serial number {serial_number} already exists.")
+                if serial_number in existing_serial_numbers:
+                    raise ValueError(
+                        f"Serial number {serial_number} already exists."
+                    )
 
-            
-        tools_to_add = []
+                if serial_number in csv_serial_numbers:
+                    raise ValueError(
+                        f"Duplicate serial number {serial_number} in CSV."
+                    )
 
-        for row in csv_reader:
+                csv_serial_numbers.add(serial_number)
+
+            csv_asset_tags.add(asset_tag)
+
             tool = Tool(
                 asset_tag=asset_tag,
                 tool_name=tool_name,
-                brand=brand or None,
-                model=model or None,
-                serial_number=serial_number or None,
+                brand=brand,
+                model=model,
+                serial_number=serial_number,
                 purchase_date=purchase_date,
                 price=price,
                 condition=condition,
-                notes=notes or None,
-                status="Available",
-                )
+                notes=notes,
+                status="Available"
+            )
+
             tools_to_add.append(tool)
 
+        # Insert all tools in one transaction
         db.session.add_all(tools_to_add)
         db.session.commit()
 
-
         flash(
-            f"Successfully imported {imported} tools.", "success")
+            f"Successfully imported {len(tools_to_add)} tools.",
+            "success"
+        )
 
     except (ValueError, InvalidOperation) as error:
         db.session.rollback()
@@ -1601,10 +1633,11 @@ def import_tools():
 
     except Exception as error:
         db.session.rollback()
-        print("IMPORT ERROR:", error)
+        print("IMPORT ERROR:", error, flush=True)
         flash(f"Import failed: {error}", "error")
 
     return redirect(url_for("tool_inventory"))
+
 
 @app.route("/logout")
 def logout():
