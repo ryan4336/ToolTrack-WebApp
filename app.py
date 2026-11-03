@@ -100,8 +100,8 @@ class Tool(db.Model):
     brand = db.Column(db.String(100))
     model = db.Column(db.String(100))
     description = db.Column(db.Text)
-    purchase_date = db.Column(db.Date, nullable=False)
-    price = db.Column(db.Numeric(12,2), nullable=False)
+    purchase_date = db.Column(db.Date)
+    price = db.Column(db.Numeric(12,2))
     asset_tag = db.Column(db.String(100), unique=True, nullable=False)
     serial_number = db.Column(db.String(150))
     status = db.Column(
@@ -447,7 +447,7 @@ def employees():
     for emp_id, price in active_assignments:
         if emp_id in employee_totals:
             employee_totals[emp_id]["count"] += 1
-            employee_totals[emp_id]["value"] += float(price)
+            employee_totals[emp_id]["value"] += float(price or 0)
 
     return render_template("employees.html", employees=employee_list, totals=employee_totals)
 
