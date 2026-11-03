@@ -1506,7 +1506,7 @@ def import_tools():
         file_data = file.stream.read().decode("utf-8-sig")
         csv_reader = csv.DictReader(io.StringIO(file_data))
 
-        # Columns our CSV must contain
+        # Columns the CSV must contain
         required_columns = {
             "asset_tag",
             "tool_name",
@@ -1536,6 +1536,7 @@ def import_tools():
             serial_number = row["serial_number"].strip() or None
             condition = row["condition"].strip() or None
             notes = row["notes"].strip() or None
+            
 
             # Convert blank purchase date to None
             purchase_date_text = row["purchase_date"].strip()
@@ -1569,22 +1570,27 @@ def import_tools():
                 if existing_serial:
                     raise ValueError(f"Serial number {serial_number} already exists.")
 
+            
+        tools_to_add = []
+
+        for row in csv_reader:
             tool = Tool(
                 asset_tag=asset_tag,
                 tool_name=tool_name,
-                brand=brand,
-                model=model,
-                serial_number=serial_number,
+                brand=brand or None,
+                model=model or None,
+                serial_number=serial_number or None,
                 purchase_date=purchase_date,
                 price=price,
                 condition=condition,
-                notes=notes
-            )
+                notes=notes or None,
+                status="Available",
+                )
+            tools_to_add.append(tool)
 
-            db.session.add(tool)
-            imported += 1
-
+        db.session.add_all(tools_to_add)
         db.session.commit()
+
 
         flash(
             f"Successfully imported {imported} tools.", "success")
