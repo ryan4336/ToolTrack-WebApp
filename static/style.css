@@ -877,3 +877,138 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+/* Shared horizontally scrolling tables with fixed outer columns */
+.sticky-table {
+    --first-column-width: 180px;
+    --second-column-width: 140px;
+    --actions-column-width: 190px;
+
+    table-layout: auto;
+    width: 100%;
+    min-width: 1100px;
+
+    /* Separate borders remain attached to sticky cells */
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.sticky-table-two-left {
+    min-width: 1400px;
+}
+
+/* Keep cell contents on one line and scroll when needed */
+.sticky-table th,
+.sticky-table td {
+    white-space: nowrap;
+    overflow-wrap: normal;
+}
+
+/* Keep the first column's width equal to the second column's offset */
+.sticky-table-two-left .sticky-first {
+    width: var(--first-column-width);
+    min-width: var(--first-column-width);
+    max-width: var(--first-column-width);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Give the first fixed column a predictable width */
+.sticky-table .sticky-first {
+    width: var(--first-column-width);
+    left: 0;
+}
+
+/* Start the second fixed column after the first */
+.sticky-table .sticky-second {
+    width: var(--second-column-width);
+    left: var(--first-column-width);
+}
+
+/* Keep Actions against the right edge of the scroll area */
+.sticky-table .sticky-right {
+    width: var(--actions-column-width);
+    right: 0;
+    box-shadow: -2px 0 0 #dddddd;
+}
+
+/* Keep fixed cells above the horizontally scrolling cells */
+.sticky-table td.sticky-left,
+.sticky-table td.sticky-right {
+    position: sticky;
+    z-index: 1;
+}
+
+/* Override the sortable-header position rule */
+.sticky-table th.sticky-left,
+.sticky-table th.sticky-right {
+    position: sticky;
+    z-index: 2;
+}
+
+/* Mark the boundary after the last fixed column on the left */
+.sticky-table .sticky-edge {
+    box-shadow: 2px 0 0 #dddddd;
+}
+
+/* Solid cell backgrounds prevent content from showing through */
+.sticky-table tbody td {
+    background-color: #ffffff;
+}
+
+.sticky-table tbody tr:nth-child(even) td {
+    background-color: #f7f7f7;
+}
+
+.sticky-table tbody tr:hover td {
+    background-color: #eeeeee;
+}
+
+.sticky-table thead th {
+    background-color: var(--hulett-charcoal);
+}
+
+/* Use an opaque hover color for sortable sticky headers */
+.sticky-table th[data-sort-type]:hover {
+    background-color: #303030;
+}
+
+/* Wrap action buttons inside their table cell */
+.sticky-table .employee-action-buttons,
+.sticky-table .table-action-buttons {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+}
+
+/* Also space assignment links that have no button wrapper */
+.sticky-table .sticky-right > .button {
+    margin: 3px 0;
+}
+
+.sticky-table .sticky-right .button {
+    white-space: nowrap;
+}
+
+/* Reduce the fixed sections at smaller browser widths */
+@media (max-width: 700px) {
+    .page-content {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .sticky-table {
+        --first-column-width: 90px;
+        --second-column-width: 70px;
+        --actions-column-width: 100px;
+    }
+
+    .sticky-table th,
+    .sticky-table td {
+        padding: 8px 6px;
+    }
+
+    .sticky-table .sticky-right .button {
+        padding: 6px 8px;
+    }
+}

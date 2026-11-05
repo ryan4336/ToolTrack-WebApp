@@ -82,17 +82,17 @@
 
 {% if tools %}
 <div class="list-table-wrapper">
-    <table class="list-table sortable-table"> 
+    <table class="list-table sortable-table sticky-table"> 
         
             
 <thead>
     <tr>
-        <th data-sort-type="text">Asset Tag</th>
+        <th data-sort-type="text" class="sticky-left sticky-first sticky-edge">Asset Tag</th>
         <th data-sort-type="text">Tool Category</th>
         <th data-sort-type="text">Status</th>
         <th data-sort-type="text">Assigned Employee</th>
         <th data-sort-type="text">Condition</th>
-        <th>Actions</th>
+        <th class="sticky-right">Actions</th>
     </tr>
 </thead>
 
@@ -111,18 +111,20 @@
                 data-status="{{ tool.status | lower }}"
                 data-condition="{{ tool.condition | lower }}">
 
-                <td>{{ tool.asset_tag }}</td>
+                <td class="sticky-left sticky-first sticky-edge">{{ tool.asset_tag }}</td>
                 <td>{{ tool.tool_name }}</td>
                 <td>{{ tool.status }}</td>
                 <td>{{ assigned_name or "—" }}</td>
                 <td>{{ tool.condition }}</td>
 
-                <td style="display: flex; gap: 8px;">
-                    <a href="{{ url_for('tool_details', asset_id=tool.asset_id) }}" class="button button-small view-link">View</a>
-                    {% if tool.status == 'Available' %}
-                        <a href="{{ url_for('assign_tool_by_asset', asset_id=tool.asset_id) }}" class="button button-small" style="background-color: #28a745;">Assign</a>
-                    {% endif %}
-                    <a href="{{ url_for('edit_tool', asset_id=tool.asset_id, next=url_for('tool_inventory')) }}" class="button button-small">Edit</a>
+                <td class="sticky-right">
+                    <div class="table-action-buttons">
+                        <a href="{{ url_for('tool_details', asset_id=tool.asset_id) }}" class="button button-small view-link">View</a>
+                        {% if tool.status == 'Available' %}
+                            <a href="{{ url_for('assign_tool_by_asset', asset_id=tool.asset_id) }}" class="button button-small" style="background-color: #28a745;">Assign</a>
+                        {% endif %}
+                        <a href="{{ url_for('edit_tool', asset_id=tool.asset_id, next=url_for('tool_inventory')) }}" class="button button-small">Edit</a>
+                    </div>
                 </td>
             </tr>
             {% endfor %}
