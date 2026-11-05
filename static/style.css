@@ -882,7 +882,7 @@ body {
 .sticky-table {
     --first-column-width: 180px;
     --second-column-width: 140px;
-    --actions-column-width: 190px;
+    --actions-column-width: 150px;
 
     table-layout: auto;
     width: 100%;
@@ -1011,4 +1011,19 @@ body {
     .sticky-table .sticky-right .button {
         padding: 6px 8px;
     }
+}
+
+/* Square icon buttons on the list pages */
+.sticky-table .button-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.button-icon svg {
+    display: block;
 }
