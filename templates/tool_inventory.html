@@ -101,7 +101,7 @@
 
         <tbody>
             <!-- Each result contains a tool and its currently assigned employee's name. -->
-            {% for tool, assigned_name in tools %}
+            {% for tool, assigned_name, assignment_id in tools %}
             <tr class="list-row"
                 data-search="
                 {{ tool.asset_tag }}
@@ -120,8 +120,15 @@
 
                 <td class="sticky-right">
                     <div class="table-action-buttons">
+                        <a href="{{ url_for('edit_tool', asset_id=tool.asset_id, next=url_for('tool_inventory')) }}"
+                        class="button button-small button-icon button-edit"
+                        title="Edit tool"
+                        aria-label="Edit tool {{ tool.asset_tag }}">
+                            {{ action_icon("edit") }}
+                        </a>
+
                         <a href="{{ url_for('tool_details', asset_id=tool.asset_id) }}"
-                        class="button button-small button-icon view-link"
+                        class="button button-small button-icon view-link button-view"
                         title="View tool"
                         aria-label="View tool {{ tool.asset_tag }}">
                             {{ action_icon("view") }}
@@ -129,20 +136,21 @@
 
                         {% if tool.status == 'Available' %}
                             <a href="{{ url_for('assign_tool_by_asset', asset_id=tool.asset_id) }}"
-                            class="button button-small button-icon"
-                            style="background-color: #28a745;"
+                            class="button button-small button-icon button-assign"
                             title="Assign tool"
                             aria-label="Assign tool {{ tool.asset_tag }}">
                                 {{ action_icon("assign") }}
                             </a>
+                        {% elif assignment_id is not none %}
+                            <a href="{{ url_for('check_in_tool',
+                                                assignment_id=assignment_id,
+                                                source='inventory') }}"
+                            class="button button-small button-icon button-check-in"
+                            title="Check in tool"
+                            aria-label="Check in tool {{ tool.asset_tag }}">
+                                {{ action_icon("return") }}
+                            </a>
                         {% endif %}
-
-                        <a href="{{ url_for('edit_tool', asset_id=tool.asset_id, next=url_for('tool_inventory')) }}"
-                        class="button button-small button-icon"
-                        title="Edit tool"
-                        aria-label="Edit tool {{ tool.asset_tag }}">
-                            {{ action_icon("edit") }}
-                        </a>
                     </div>
                 </td>
             </tr>

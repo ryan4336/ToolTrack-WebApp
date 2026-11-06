@@ -141,7 +141,7 @@
                 <td class="sticky-right">
                     <div class="table-action-buttons">
                         <a href="{{ url_for('assignment_details', assignment_id=assignment.assignment_id) }}"
-                        class="button button-small button-icon"
+                        class="button button-small button-icon button-view"
                         title="View assignment"
                         aria-label="View assignment for {{ tool.asset_tag }} to {{ employee.name }}">
                             {{ action_icon("view") }}
@@ -151,7 +151,7 @@
                             <a href="{{ url_for('check_in_tool',
                                                 assignment_id=assignment.assignment_id,
                                                 source='assignments') }}"
-                            class="button button-small button-icon"
+                            class="button button-small button-icon button-check-in"
                             title="Check in tool"
                             aria-label="Check in tool {{ tool.asset_tag }}">
                                 {{ action_icon("return") }}
