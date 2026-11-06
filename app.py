@@ -593,7 +593,7 @@ def tool_inventory():
     
     # Get each tool and the employee from its active assignment, if any
     tool_list = db.session.execute(
-        db.select(Tool, Employee.name)
+        db.select(Tool, Employee.name, Assignment.assignment_id)
         .outerjoin(
             Assignment,
             (Assignment.asset_id == Tool.asset_id)
@@ -1395,6 +1395,8 @@ def check_in_tool(assignment_id):
         return_url = url_for("assignments")
     elif source == "tool":
         return_url = url_for("tool_details", asset_id=tool.asset_id)
+    elif source == "inventory":
+        return_url = url_for("tool_inventory")
     else:
         return_url = url_for(
             "assignment_details",

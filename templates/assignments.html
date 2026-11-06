@@ -1,5 +1,6 @@
 
 {% extends "base.html" %}
+{% from "_action_icons.html" import action_icon %}
 
 {% block title %}Assignments | ToolTrack{% endblock %}
 
@@ -138,21 +139,25 @@
                 </td>
 
                 <td class="sticky-right">
-                    <!-- Open assignment details -->
-                    <a href="{{ url_for('assignment_details', assignment_id=assignment.assignment_id) }}"
-                       class="button button-small">
-                        View
-                    </a>
-
-                    <!-- Only active assignments can be checked in -->
-                    {% if assignment.active %}
-                        <a href="{{ url_for('check_in_tool',
-                                            assignment_id=assignment.assignment_id,
-                                            source='assignments') }}"
-                           class="button button-small">
-                            Check In
+                    <div class="table-action-buttons">
+                        <a href="{{ url_for('assignment_details', assignment_id=assignment.assignment_id) }}"
+                        class="button button-small button-icon button-view"
+                        title="View assignment"
+                        aria-label="View assignment for {{ tool.asset_tag }} to {{ employee.name }}">
+                            {{ action_icon("view") }}
                         </a>
-                    {% endif %}
+
+                        {% if assignment.active %}
+                            <a href="{{ url_for('check_in_tool',
+                                                assignment_id=assignment.assignment_id,
+                                                source='assignments') }}"
+                            class="button button-small button-icon button-check-in"
+                            title="Check in tool"
+                            aria-label="Check in tool {{ tool.asset_tag }}">
+                                {{ action_icon("return") }}
+                            </a>
+                        {% endif %}
+                    </div>
                 </td>
             </tr>
             {% endfor %}

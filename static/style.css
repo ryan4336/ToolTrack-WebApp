@@ -331,6 +331,51 @@ body {
     background-color: #dc3545;
 }
 
+/* View details - blue */
+.button-view {
+    background-color: #2563eb;
+}
+
+.button-view:hover {
+    background-color: #1d4ed8;
+}
+
+/* Assignment history - purple */
+.button-history {
+    background-color: #7c3aed;
+}
+
+.button-history:hover {
+    background-color: #6d28d9;
+}
+
+/* Edit - dark amber */
+.button-edit {
+    background-color: #92400e;
+}
+
+.button-edit:hover {
+    background-color: #78350f;
+}
+
+/* Assign tool - green */
+.button-assign {
+    background-color: #15803d;
+}
+
+.button-assign:hover {
+    background-color: #166534;
+}
+
+/* Check in tool - teal */
+.button-check-in {
+    background-color: #0f766e;
+}
+
+.button-check-in:hover {
+    background-color: #115e59;
+}
+
 /* ---------------- SHARED FORMS ---------------- */
 /* ---------------------------------------------- */
 /* ---------------------------------------------- */
@@ -882,7 +927,7 @@ body {
 .sticky-table {
     --first-column-width: 180px;
     --second-column-width: 140px;
-    --actions-column-width: 190px;
+    --actions-column-width: 150px;
 
     table-layout: auto;
     width: 100%;
@@ -1011,4 +1056,19 @@ body {
     .sticky-table .sticky-right .button {
         padding: 6px 8px;
     }
+}
+
+/* Square icon buttons on the list pages */
+.sticky-table .button-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.button-icon svg {
+    display: block;
 }
