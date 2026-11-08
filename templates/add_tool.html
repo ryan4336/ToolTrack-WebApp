@@ -9,7 +9,33 @@
     <p class="form-error">{{ error }}</p>
 {% endif %}
 
-<form method="POST" class="form" id="add-tool-form" action="{{ url_for('add_tool') }}">
+
+
+    <form
+        action="{{ url_for('import_tools') }}"
+        method="POST"
+        enctype="multipart/form-data"
+        class="import-form">
+        <input
+            type="file"
+            id="csv-file"
+            name="file"
+            accept=".csv"
+            class="import-file-input"
+            required>
+
+        <label for="csv-file" class="import-file-label">
+            Choose CSV
+        </label>
+        <span id="file-name" class="import-file-name">
+            No file selected
+        </span>
+
+        <button type="submit" class="button">
+            Import Tools
+        </button>
+    </form>
+    <form method="POST" class="form" id="add-tool-form" action="{{ url_for('add_tool') }}">
         <div class="form-group">
             <label for="asset_tag">Asset Tag</label>
             <input
@@ -117,12 +143,24 @@
             </select>
         </div>
 
-    </div>
+    
 
     <div class="form-actions">
             <a class="button button-cancel" href="{{ url_for('tool_inventory') }}">Cancel</a>
             <button type="submit" class="button">Add Tool</button>
-        </div>
+    </div>
 
 </form>
+<script>
+    const fileInput = document.getElementById("csv-file");
+    const fileName = document.getElementById("file-name");
+
+    fileInput.addEventListener("change", function () {
+        if (fileInput.files.length > 0) {
+            fileName.textContent = fileInput.files[0].name;
+        } else {
+            fileName.textContent = "No file selected";
+        }
+    });
+</script>
 {% endblock %}

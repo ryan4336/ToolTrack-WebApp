@@ -14,30 +14,7 @@
         <a href="{{ url_for('add_tool') }}" class="button">
             Add Tool
         </a>
-    <form
-        action="{{ url_for('import_tools') }}"
-        method="POST"
-        enctype="multipart/form-data"
-        class="import-form">
-        <input
-            type="file"
-            id="csv-file"
-            name="file"
-            accept=".csv"
-            class="import-file-input"
-            required>
-
-        <label for="csv-file" class="import-file-label">
-            Choose CSV
-        </label>
-        <span id="file-name" class="import-file-name">
-            No file selected
-        </span>
-
-        <button type="submit" class="button">
-            Import Tools
-        </button>
-    </form>
+    
 </div>
     </div>
 </div>
