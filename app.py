@@ -1234,37 +1234,33 @@ def edit_assignment(assignment_id):
         error=error
     )
     
-@app.route("/tool_types")
+@app.route("/tool_categories")
 @login_required
-def tool_types():
+def tool_categories():
+    # Retrieve all registered categories, including those without tools
     categories = db.session.execute(
-        db.select(Tool.category).distinct()
+        db.select(ToolWarningLimit).order_by(ToolWarningLimit.tool_name)
     ).scalars().all()
 
-    coded_limits = {
-        "Vacuum Pumps": 1,
-        "Recovery Machines": 2,
-        "Hand Tools": 5
-    }
-
-    tool_type_summary = []
-    for category in categories:
+    category_summary = []
+    for cat in categories:
+        # Count available tools using Tool.tool_name and the "Available" status
         available_count = Tool.query.filter_by(
-            category=category, 
+            tool_name=cat.tool_name, 
             status="Available"
         ).count()
 
-        limit = coded_limits.get(category, 0)
-        
-        is_low = available_count <= limit
+        limit = cat.warning_limit
+        is_low = limit is not None and available_count <= limit
 
-        tool_type_summary.append({
-            "category": category,
+        category_summary.append({
+            "name": cat.tool_name,
             "available_count": available_count,
             "warning_limit": limit,
             "is_low": is_low
         })
-    return render_template("tool_types.html", tool_types=tool_type_summary)
+
+    return render_template("tool_categories.html", categories=category_summary)
 
 @app.route("/change_password", methods=["GET", "POST"])
 @login_required

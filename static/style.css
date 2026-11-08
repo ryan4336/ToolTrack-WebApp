@@ -1072,3 +1072,13 @@ body {
 .button-icon svg {
     display: block;
 }
+
+/* Tool Categories Warning Indicators */
+.warning-status-low {
+    color: #d9534f;
+    font-weight: bold;
+}
+
+.warning-status-normal {
+    color: #5cb85c;
+}

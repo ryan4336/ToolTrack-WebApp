@@ -1,11 +1,12 @@
 // search bar will search all fields (minus status and Admin) for any matching strings anywhere within those fields. 
 // Search will happen on user input, but delay 300ms and reset on input so the browser is not acting on every single typed letter
 
-// Find the search field, employee rows, empty-results message, and status filter
+// Find the search field, employee rows, empty-results message, status filter, and clear button
 const searchInput = document.getElementById("employee-search");
 const employeeRows = document.querySelectorAll(".list-row");
 const noResults = document.getElementById("no-search-results");
 const statusFilter = document.getElementById("employee-status");
+const clearFiltersBtn = document.getElementById("clear-filters");
 
 let searchTimer;
 
@@ -48,6 +49,15 @@ statusFilter.addEventListener("change", function () {
     clearTimeout(searchTimer);
     filterEmployees();
 });
+
+// Clear filters functionality for Task 39
+if (clearFiltersBtn) {
+    clearFiltersBtn.addEventListener("click", function() {
+        searchInput.value = "";
+        statusFilter.value = "active";
+        filterEmployees();
+    });
+}
 
 // Apply the default Active filter when the page loads
 filterEmployees();
