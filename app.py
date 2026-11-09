@@ -1251,7 +1251,6 @@ def tool_categories():
         ).count()
 
         limit = cat.warning_limit
-        is_low = limit is not None and available_count <= limit
 
         category_summary.append({
             "name": cat.tool_name,
