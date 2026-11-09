@@ -1343,7 +1343,7 @@ def edit_category(category_name):
 
 
 # Issue #44 - Create a new tool category and optional stock warning limit
-@app.route("/tool_types/add", methods=["GET", "POST"])
+@app.route("/tool_categories/add", methods=["GET", "POST"])
 @login_required
 def add_category():
     category_name = ""
@@ -1355,7 +1355,7 @@ def add_category():
     if source == "add_tool":
         return_url = url_for("add_tool")
     else:
-        return_url = url_for("tool_types")
+        return_url = url_for("tool_categories")
 
     if request.method == "POST":
         category_name = request.form.get("category_name", "").strip()
