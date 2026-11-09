@@ -1234,29 +1234,33 @@ def edit_assignment(assignment_id):
         error=error
     )
     
-@app.route("/tool_types")
+@app.route("/tool_categories")
 @login_required
-def tool_types():
-    # Categories are stored in tool_warning_limit, not Tool.category.
+def tool_categories():
+    # Retrieve all registered categories, including those without tools
     categories = db.session.execute(
         db.select(ToolWarningLimit).order_by(ToolWarningLimit.tool_name)
     ).scalars().all()
 
-    tool_type_summary = []
-    for category in categories:
+    category_summary = []
+    for cat in categories:
+        # Count available tools using Tool.tool_name and the "Available" status
         available_count = Tool.query.filter_by(
-            tool_name=category.tool_name,
+            tool_name=cat.tool_name, 
             status="Available"
         ).count()
-        limit = category.warning_limit
-        tool_type_summary.append({
-            "category": category.tool_name,
+
+        limit = cat.warning_limit
+        is_low = limit is not None and available_count <= limit
+
+        category_summary.append({
+            "name": cat.tool_name,
             "available_count": available_count,
             "warning_limit": limit,
             "is_low": limit is not None and available_count <= limit
         })
 
-    return render_template("tool_types.html", tool_types=tool_type_summary)
+    return render_template("tool_categories.html", categories=category_summary)
 
 
 @app.route("/tool_types/<path:category_name>/edit", methods=["GET", "POST"])

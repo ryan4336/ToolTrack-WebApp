@@ -57,16 +57,19 @@
             </select>
         </div>
         
-        <div style="display: flex; gap: 10px; align-items: center;">
+        <div style="display: flex; gap: 10px; align-items: flex-end;">
             <div class="dropdown-filter">
                 <label for="date-from">From (optional)</label>
                 <input type="date" id="date-from">
             </div>
-            <span style="padding-top: 20px;"></span>
+            <span style="padding-bottom: 10px;">—</span>
             <div class="dropdown-filter">
                 <label for="date-through">Through (optional)</label>
                 <input type="date" id="date-through">
             </div>
+            
+            <!-- Add the Clear Filters button for Task 39 -->
+            <button type="button" id="clear-filters" class="button button-cancel" style="height: 38px;">Clear Filters</button>
         </div>
     </div>
     
