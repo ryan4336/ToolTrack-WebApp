@@ -1,9 +1,9 @@
-
 const searchInput = document.getElementById("tool-search");
 const toolRows = document.querySelectorAll(".list-row");
 const noResults = document.getElementById("no-search-results");
 const statusFilter = document.getElementById("tool-status");
 const conditionFilter = document.getElementById("tool-condition");
+const clearFiltersBtn = document.getElementById("clear-filters");
 
 let searchTimer;
 
@@ -48,5 +48,15 @@ conditionFilter.addEventListener("change", function () {
     clearTimeout(searchTimer);
     filterTools();
 });
+
+// Clear filters functionality for Task 39
+if (clearFiltersBtn) {
+    clearFiltersBtn.addEventListener("click", function() {
+        searchInput.value = "";
+        statusFilter.value = "all";
+        conditionFilter.value = "all";
+        filterTools();
+    });
+}
 
 filterTools();

@@ -18,7 +18,7 @@
 <div class="search-form">
     <label for="employee-search">Search employees</label>
 
-    <div class="search-controls">
+    <div class="search-controls" style="display: flex; gap: 10px; align-items: flex-end;">
         <input type="search"
                id="employee-search"
                placeholder="Name, email, phone, job title, or status">
@@ -31,6 +31,9 @@
                 <option value="all">All</option>
             </select>
         </div>
+        
+        <!-- Add the Clear Filters button for Task 39 -->
+        <button type="button" id="clear-filters" class="button button-cancel">Clear Filters</button>
     </div>
 </div>
 
