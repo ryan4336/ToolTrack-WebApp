@@ -1237,34 +1237,170 @@ def edit_assignment(assignment_id):
 @app.route("/tool_types")
 @login_required
 def tool_types():
+    # Categories are stored in tool_warning_limit, not Tool.category.
     categories = db.session.execute(
-        db.select(Tool.category).distinct()
+        db.select(ToolWarningLimit).order_by(ToolWarningLimit.tool_name)
     ).scalars().all()
-
-    coded_limits = {
-        "Vacuum Pumps": 1,
-        "Recovery Machines": 2,
-        "Hand Tools": 5
-    }
 
     tool_type_summary = []
     for category in categories:
         available_count = Tool.query.filter_by(
-            category=category, 
+            tool_name=category.tool_name,
             status="Available"
         ).count()
-
-        limit = coded_limits.get(category, 0)
-        
-        is_low = available_count <= limit
-
+        limit = category.warning_limit
         tool_type_summary.append({
-            "category": category,
+            "category": category.tool_name,
             "available_count": available_count,
             "warning_limit": limit,
-            "is_low": is_low
+            "is_low": limit is not None and available_count <= limit
         })
+
     return render_template("tool_types.html", tool_types=tool_type_summary)
+
+
+@app.route("/tool_types/<path:category_name>/edit", methods=["GET", "POST"])
+@login_required
+def edit_category(category_name):
+    # The category name is the primary key in this project's schema.
+    category = db.session.get(ToolWarningLimit, category_name)
+    if category is None:
+        from flask import abort
+        abort(404)
+
+    name = category.tool_name
+    warning_text = ("" if category.warning_limit is None
+                    else str(category.warning_limit))
+    errors = []
+
+    if request.method == "POST":
+        name = request.form.get("category_name", "").strip()
+        warning_text = request.form.get("warning_limit", "").strip()
+        warning_limit = None
+
+        if not name:
+            errors.append("Category name cannot be blank.")
+        elif len(name) > 150:
+            errors.append("Category name must be 150 characters or fewer.")
+        else:
+            duplicate = db.session.execute(
+                db.select(ToolWarningLimit.tool_name).where(
+                    db.func.lower(ToolWarningLimit.tool_name) == name.lower(),
+                    ToolWarningLimit.tool_name != category.tool_name
+                )
+            ).first()
+            if duplicate:
+                errors.append("A category with that name already exists.")
+
+        if warning_text:
+            if not warning_text.isascii() or not warning_text.isdecimal():
+                errors.append("Warning limit must be a nonnegative whole number.")
+            else:
+                warning_limit = int(warning_text)
+                if warning_limit > 2147483647:
+                    errors.append("Warning limit is too large.")
+
+        if not errors:
+            old_name = category.tool_name
+            try:
+                # Update tools and the category in the same transaction.
+                # Changing the primary key via SQL UPDATE avoids inserting a
+                # second category row and preserves existing category data.
+                if name != old_name:
+                    db.session.execute(
+                        db.update(Tool)
+                        .where(Tool.tool_name == old_name)
+                        .values(tool_name=name)
+                    )
+                    db.session.execute(
+                        db.update(ToolWarningLimit)
+                        .where(ToolWarningLimit.tool_name == old_name)
+                        .values(tool_name=name, warning_limit=warning_limit)
+                    )
+                else:
+                    category.warning_limit = warning_limit
+
+                db.session.commit()
+            except (IntegrityError, OperationalError):
+                db.session.rollback()
+                errors.append("Unable to save category. Check the name and try again.")
+            else:
+                flash("Tool category updated successfully.", "success")
+                return redirect(url_for("tool_types"))
+
+    return render_template(
+        "edit_category.html",
+        category=category,
+        category_name=name,
+        warning_limit=warning_text,
+        errors=errors,
+        error=" ".join(errors) if errors else None
+    ), (400 if errors else 200)
+
+
+# Issue #44 - Create a new tool category and optional stock warning limit
+@app.route("/tool_types/add", methods=["GET", "POST"])
+@login_required
+def add_category():
+    category_name = ""
+    warning_limit_text = ""
+    errors = []
+
+    # Only allow known internal pages as return destinations.
+    source = request.args.get("source", "categories")
+    if source == "add_tool":
+        return_url = url_for("add_tool")
+    else:
+        return_url = url_for("tool_types")
+
+    if request.method == "POST":
+        category_name = request.form.get("category_name", "").strip()
+        warning_limit_text = request.form.get("warning_limit", "").strip()
+        warning_limit = None
+
+        if not category_name:
+            errors.append("Category name is required.")
+        elif len(category_name) > 150:
+            errors.append("Category name must be 150 characters or fewer.")
+        else:
+            existing = db.session.execute(
+                db.select(ToolWarningLimit.tool_name).where(
+                    db.func.lower(ToolWarningLimit.tool_name) == category_name.lower()
+                ).limit(1)
+            ).first()
+            if existing:
+                errors.append("A category with that name already exists.")
+
+        if warning_limit_text:
+            if not warning_limit_text.isascii() or not warning_limit_text.isdecimal():
+                errors.append("Warning limit must be a nonnegative whole number.")
+            else:
+                warning_limit = int(warning_limit_text)
+                if warning_limit > 2147483647:
+                    errors.append("Warning limit is too large.")
+
+        if not errors:
+            try:
+                db.session.add(ToolWarningLimit(
+                    tool_name=category_name,
+                    warning_limit=warning_limit
+                ))
+                db.session.commit()
+            except (IntegrityError, OperationalError):
+                db.session.rollback()
+                errors.append("Unable to save category. The name may already exist.")
+            else:
+                flash("Tool category added successfully.", "success")
+                return redirect(return_url)
+
+    return render_template(
+        "add_category.html",
+        category_name=category_name,
+        warning_limit=warning_limit_text,
+        errors=errors,
+        return_url=return_url,
+        source=source
+    ), (400 if errors else 200)
 
 @app.route("/change_password", methods=["GET", "POST"])
 @login_required
@@ -1648,3 +1784,4 @@ def logout():
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5001, debug=True)
+
