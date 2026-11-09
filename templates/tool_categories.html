@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% from "_action_icons.html" import action_icon %}
+
+{% block title %}Tool Categories | ToolTrack{% endblock %}
+
+{% block content %}
+<div class="list-header">
+    <h1>Tool Categories</h1>
+    <div class="header-actions">
+        <a href="{{ url_for('tool_inventory') }}" class="button button-cancel">
+            Back to Inventory
+        </a>
+        <!-- Placeholder link until the Add Category route is created -->
+        <a href="#" class="button">
+            Add Category
+        </a>
+    </div>
+</div>
+
+<div class="search-form">
+    <label for="category-search">Search categories</label>
+    <div class="search-controls">
+        <input type="search" id="category-search" placeholder="Category name">
+    </div>
+</div>
+
+{% if categories %}
+<div class="list-table-wrapper">
+    <table class="list-table sortable-table sticky-table">
+        <thead>
+            <tr>
+                <th data-sort-type="text" class="sticky-left sticky-first sticky-edge">Tool Category</th>
+                <th data-sort-type="number">Available Count</th>
+                <th data-sort-type="number">Warning Limit</th>
+                <th data-sort-type="text">Warning Status</th>
+                <th class="sticky-right">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cat in categories %}
+            <tr class="list-row" data-search="{{ cat.name }}">
+                
+                <td class="sticky-left sticky-first sticky-edge" data-sort-value="{{ cat.name }}">
+                    {{ cat.name }}
+                </td>
+                
+                <td data-sort-value="{{ cat.available_count }}">
+                    {{ cat.available_count }}
+                </td>
+                
+                <td data-sort-value="{{ cat.warning_limit if cat.warning_limit is not none else -1 }}">
+                    {{ cat.warning_limit if cat.warning_limit is not none else "—" }}
+                </td>
+                
+                <td data-sort-value="{{ 'Low Stock Warning' if cat.is_low else ('—' if cat.warning_limit is none else 'Normal') }}">
+                    {% if cat.warning_limit is none %}
+                        —
+                    {% elif cat.is_low %}
+                        <span class="warning-status-low">Low Stock Warning</span>
+                    {% else %}
+                        <span class="warning-status-normal">Normal</span>
+                    {% endif %}
+                </td>
+                
+                <td class="sticky-right">
+                    <div class="table-action-buttons">
+                        <!-- Placeholder link until the Edit Category route is created -->
+                        <a href="#" 
+                           class="button button-small button-icon button-edit" 
+                           title="Edit category" 
+                           aria-label="Edit category {{ cat.name }}">
+                            {{ action_icon("edit") }}
+                        </a>
+                    </div>
+                </td>
+                
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<p id="no-search-results" hidden>No categories match your search.</p>
+{% else %}
+    <p>No tool categories have been configured yet.</p>
+{% endif %}
+
+<script src="{{ url_for('static', filename='tool_categories.js') }}" defer></script>
+<script src="{{ url_for('static', filename='table_sort.js') }}" defer></script>
+{% endblock %}

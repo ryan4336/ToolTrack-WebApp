@@ -7,7 +7,8 @@
 <div class="list-header">
     <h1>Tool Inventory</h1>
     <div class="header-actions">
-        <a href="{{ url_for('tool_types') }}" class="button">
+        <!-- Update link from tool_types to tool_categories for Task 43 -->
+        <a href="{{ url_for('tool_categories') }}" class="button">
             View Tool Categories
         </a>
 
@@ -22,7 +23,7 @@
 <div class="search-form">
     <label for="list-search">Search Tools</label>
 
-    <div class="search-controls tool-search-controls">
+    <div class="search-controls tool-search-controls" style="display: flex; gap: 10px; align-items: flex-end;">
         <input type="search" 
         id="tool-search" 
         placeholder="Asset Tag, Tool Category, Status, Employee, or Condition">
@@ -53,6 +54,9 @@
                 <option value="unknown">Unknown</option>
             </select>
         </div>
+        
+        <!-- Add the Clear Filters button for Task 39 -->
+        <button type="button" id="clear-filters" class="button button-cancel" style="height: 38px;">Clear Filters</button>
     </div>
 </div>
 

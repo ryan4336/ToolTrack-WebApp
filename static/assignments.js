@@ -7,6 +7,7 @@ const dateThroughInput = document.getElementById("date-through");
 const dateError = document.getElementById("date-error");
 const assignmentRows = document.querySelectorAll(".list-row");
 const noResults = document.getElementById("no-assignment-results");
+const clearFiltersBtn = document.getElementById("clear-filters");
 
 let searchTimer;
 
@@ -73,6 +74,18 @@ statusFilter.addEventListener("change", filterAssignments);
 dateTypeFilter.addEventListener("change", filterAssignments);
 dateFromInput.addEventListener("change", filterAssignments);
 dateThroughInput.addEventListener("change", filterAssignments);
+
+// Clear filters functionality for Task 39
+if (clearFiltersBtn) {
+    clearFiltersBtn.addEventListener("click", function() {
+        searchInput.value = "";
+        statusFilter.value = statusFilter.dataset.defaultStatus || "active";
+        dateTypeFilter.value = "date-assigned";
+        dateFromInput.value = "";
+        dateThroughInput.value = "";
+        filterAssignments();
+    });
+}
 
 // Apply the default status selected in the HTML
 filterAssignments();
