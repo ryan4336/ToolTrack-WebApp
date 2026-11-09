@@ -14,8 +14,6 @@
         <a href="{{ url_for('add_tool') }}" class="button">
             Add Tool
         </a>
-    
-</div>
     </div>
 </div>
 
@@ -144,17 +142,4 @@
 
 <script src="{{ url_for('static', filename='tool_inventory.js') }}" defer></script>
 <script src="{{ url_for('static', filename='table_sort.js') }}" defer></script>
-
-<script>
-    const fileInput = document.getElementById("csv-file");
-    const fileName = document.getElementById("file-name");
-
-    fileInput.addEventListener("change", function () {
-        if (fileInput.files.length > 0) {
-            fileName.textContent = fileInput.files[0].name;
-        } else {
-            fileName.textContent = "No file selected";
-        }
-    });
-</script>
 {% endblock %}
