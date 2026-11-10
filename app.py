@@ -1237,19 +1237,30 @@ def edit_assignment(assignment_id):
 @app.route("/tool_categories")
 @login_required
 def tool_categories():
-    # Retrieve all registered categories, including those without tools
+    # Retrieve all registered categories
     categories = db.session.execute(
-        db.select(ToolWarningLimit).order_by(ToolWarningLimit.tool_name)
+        db.select(ToolWarningLimit)
+        .order_by(ToolWarningLimit.tool_name)
     ).scalars().all()
 
-    category_summary = []
-    for cat in categories:
-        # Count available tools using Tool.tool_name and the "Available" status
-        available_count = Tool.query.filter_by(
-            tool_name=cat.tool_name, 
-            status="Available"
-        ).count()
+    # Count all available tools, grouped by category
+    available_counts = db.session.execute(
+        db.select(
+            Tool.tool_name,
+            db.func.count(Tool.asset_id)
+        )
+        .where(Tool.status == "Available")
+        .group_by(Tool.tool_name)
+    ).all()
 
+    # Store the available counts in a dictionary
+    count_dict = dict(available_counts)
+
+    category_summary = []
+
+    for cat in categories:
+        # Get the count for this category (0 if none are available)
+        available_count = count_dict.get(cat.tool_name, 0)
         limit = cat.warning_limit
 
         category_summary.append({
@@ -1262,7 +1273,7 @@ def tool_categories():
     return render_template("tool_categories.html", categories=category_summary)
 
 
-@app.route("/tool_types/<path:category_name>/edit", methods=["GET", "POST"])
+@app.route("/tool_categories/<path:category_name>/edit", methods=["GET", "POST"])
 @login_required
 def edit_category(category_name):
     # The category name is the primary key in this project's schema.
@@ -1329,7 +1340,7 @@ def edit_category(category_name):
                 errors.append("Unable to save category. Check the name and try again.")
             else:
                 flash("Tool category updated successfully.", "success")
-                return redirect(url_for("tool_types"))
+                return redirect(url_for("tool_categories"))
 
     return render_template(
         "edit_category.html",
