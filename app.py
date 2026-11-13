@@ -219,7 +219,7 @@ def login_required(f):
             return redirect(url_for("login"))
 
         # Make sure they're an admin
-        if not user.admin:
+        if not user.admin or not user.active:
             session.clear()
             flash("Admin access required.", "error")
             return redirect(url_for("login"))
@@ -273,8 +273,12 @@ def current_admin():
     if not email:
         return None
     return db.session.execute(
-    db.select(Employee).where(Employee.email == email, Employee.admin.is_(True))
-).scalar_one_or_none()
+        db.select(Employee).where(
+            Employee.email == email,
+            Employee.admin.is_(True),
+            Employee.active.is_(True)
+        )
+    ).scalar_one_or_none()
 
 # Convert UTC database timestamps to Central Time for Jinja templates
 @app.template_filter('to_central')
@@ -307,7 +311,7 @@ def login():
             query = """
                 SELECT email, password_hash
                 FROM employee
-                WHERE email = %s AND admin = TRUE;
+                WHERE email = %s AND admin = TRUE AND active = TRUE;;
             """
             cursor.execute(query, (username,))
             admin = cursor.fetchone()
@@ -341,22 +345,14 @@ def login():
 
 # Display the dashboard page
 @app.route("/dashboard")
+@login_required
 def dashboard():
 
-    # Make sure the user is logged in
-    if "user_email" not in session:
-        flash("Please log in to access the dashboard.", "error")
-        return redirect(url_for("login"))
 
     # Find the currently logged-in employee
     user = Employee.query.filter_by(
         email=session["user_email"]
     ).first()
-
-    if user is None:
-        session.clear()
-        flash("Please log in again.", "error")
-        return redirect(url_for("login"))
 
     # Count all tools in the database
     total_tools = Tool.query.count()
@@ -719,7 +715,8 @@ def tool_details(asset_id):
     )
 
 
-@app.route("/tools/<asset_id>/edit", methods=["GET", "POST"])
+@app.route("/tools/<int:asset_id>/edit", methods=["GET", "POST"])
+@login_required
 def edit_tool(asset_id):
     tool = db.get_or_404(Tool, asset_id)
     error = None
