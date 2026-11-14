@@ -311,7 +311,7 @@ def login():
             query = """
                 SELECT email, password_hash
                 FROM employee
-                WHERE email = %s AND admin = TRUE AND active = TRUE;;
+                WHERE email = %s AND admin = TRUE AND active = TRUE;
             """
             cursor.execute(query, (username,))
             admin = cursor.fetchone()
@@ -1240,6 +1240,7 @@ def edit_assignment(assignment_id):
     if not assignment.active:
         flash("You cannot edit a closed assignment.", "error")
         return redirect(url_for('assignment_details', assignment_id=assignment.assignment_id))
+    
 
     if request.method == "POST":
         return_date_text = request.form.get("expected_return_date", "")
@@ -1595,7 +1596,11 @@ def check_in_tool(assignment_id):
     if not assignment.active:
         flash("This assignment has already been checked in.", "error")
         return redirect(return_url)
-
+    
+    if tool.status == "Missing":
+        flash("Mark the tool as found before checking it in.", "error")
+        return redirect(return_url)
+    
     conditions = ["New", "Good", "Fair", "Poor", "Unknown"]
     statuses = ["Available", "Damaged", "Under Repair"]
 
@@ -1632,6 +1637,11 @@ def check_in_tool(assignment_id):
                 if not assignment.active:
                     db.session.rollback()
                     flash("This assignment has already been checked in.", "error")
+                    return redirect(return_url)
+                
+                if tool.status == "Missing":
+                    db.session.rollback()
+                    flash("Mark the tool as found before checking it in.", "error")
                     return redirect(return_url)
 
                 # Store UTC without timezone information

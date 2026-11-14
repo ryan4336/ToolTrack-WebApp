@@ -331,6 +331,16 @@ body {
     background-color: #dc3545;
 }
 
+/* Disabled check-in button styling */
+.button-check-in:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.button-check-in:disabled:hover {
+    background-color: #0f766e;
+}
+
 /* View details - blue */
 .button-view {
     background-color: #2563eb;
@@ -548,6 +558,28 @@ body {
     margin: 6px 0;
     line-height: 1.4;
     overflow-wrap: anywhere;
+}
+
+/* Align section header and action button */
+.details-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.details-section-header h2 {
+    margin: 0;
+}
+
+/* Icon button inside details sections */
+.details-section-header .button-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
 }
 
 /* Preserve line breaks entered in the notes field */
