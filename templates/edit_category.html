@@ -5,7 +5,26 @@
 
 {% block content %}
 
-<h1 class="form-title">Edit Tool Category</h1>
+<div class="list-header">
+    <h1>Edit Tool Category</h1>
+
+    {% if has_tools %}
+        <button type="button"
+                class="button button-delete button-delete-blocked"
+                onclick="alert('This category cannot be deleted because tools are still using it. Move those tools to another category first.');">
+            Delete Category
+        </button>
+    {% else %}
+        <form action="{{ url_for('delete_category',
+                                 category_name=category.tool_name) }}"
+              method="POST"
+              onsubmit="return confirm('Delete this category and its low-availability warning setting? This cannot be undone.');">
+            <button type="submit" class="button button-delete">
+                Delete Category
+            </button>
+        </form>
+    {% endif %}
+</div>
 
 {% if errors %}
     {% for message in errors %}

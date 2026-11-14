@@ -99,6 +99,7 @@
         <tbody>
             <!-- Each result contains an assignment, tool, and employee -->
             {% for assignment, tool, employee in assignments %}
+            {% set is_missing = assignment.active and tool.status == "Missing" %}
             <tr class="list-row"
                 data-search="{{ assignment.assignment_id }} {{ employee.name }} {{ employee.email }} {{ tool.tool_name }} {{ tool.asset_tag }} {{ tool.brand or '' }} {{ tool.model or '' }} {{ assignment.job_vehicle_number or '' }}"
                 data-active="{{ 'active' if assignment.active else 'inactive' }}"
@@ -111,9 +112,14 @@
                     {{ employee.name }}
                 </td>
 
-                <td class="sticky-left sticky-second sticky-edge" 
-                data-sort-value="{{ tool.asset_tag }}">
+                <td class="sticky-left sticky-second sticky-edge"
+                    data-sort-value="{{ tool.asset_tag }}">
                     {{ tool.asset_tag }}
+
+                    {% if is_missing %}
+                        <span class="missing-badge" 
+                            title="Tool is missing">?</span>
+                    {% endif %}
                 </td>
 
                 <td data-sort-value="{{ tool.tool_name }}">
@@ -151,14 +157,25 @@
                         </a>
 
                         {% if assignment.active %}
-                            <a href="{{ url_for('check_in_tool',
-                                                assignment_id=assignment.assignment_id,
-                                                source='assignments') }}"
-                            class="button button-small button-icon button-check-in"
-                            title="Check in tool"
-                            aria-label="Check in tool {{ tool.asset_tag }}">
-                                {{ action_icon("return") }}
-                            </a>
+                            {% if is_missing %}
+                                <span title="Mark the tool as found before checking it in.">
+                                    <button type="button"
+                                            class="button button-small button-icon button-check-in"
+                                            aria-label="Check in unavailable: mark tool {{ tool.asset_tag }} as found first"
+                                            disabled>
+                                        {{ action_icon("return") }}
+                                    </button>
+                                </span>
+                            {% else %}
+                                <a href="{{ url_for('check_in_tool',
+                                                    assignment_id=assignment.assignment_id,
+                                                    source='assignments') }}"
+                                class="button button-small button-icon button-check-in"
+                                title="Check in tool"
+                                aria-label="Check in tool {{ tool.asset_tag }}">
+                                    {{ action_icon("return") }}
+                                </a>
+                            {% endif %}
                         {% endif %}
                     </div>
                 </td>

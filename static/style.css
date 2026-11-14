@@ -1200,3 +1200,24 @@ body {
 .details-notes {
     white-space: pre-wrap;
 }
+
+/* Show missing tools beside their asset tags */
+.missing-badge {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 3px 6px;
+    border-radius: 4px;
+    background-color: #fee2e2;
+    color: #991b1b;
+    font-size: 12px;
+    font-weight: 600;
+    vertical-align: middle;
+}
+
+/* Gray out actions that are unavailable */
+.button-icon:disabled,
+.button-icon:disabled:hover {
+    background-color: #777777;
+    color: #ffffff;
+    cursor: not-allowed;
+}

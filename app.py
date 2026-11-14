@@ -1399,15 +1399,61 @@ def edit_category(category_name):
                 flash("Tool category updated successfully.", "success")
                 return redirect(url_for("tool_categories"))
 
+    # Disable deletion if any tools use this category
+    has_tools = db.session.execute(
+        db.select(Tool.asset_id)
+        .where(Tool.tool_name == category.tool_name)
+        .limit(1)
+    ).first() is not None
+
     return render_template(
         "edit_category.html",
         category=category,
         category_name=name,
         warning_limit=warning_text,
         errors=errors,
-        error=" ".join(errors) if errors else None
+        error=" ".join(errors) if errors else None,
+        has_tools=has_tools
     ), (400 if errors else 200)
+    
+@app.route("/tool_categories/<path:category_name>/delete", methods=["POST"])
+@login_required
+def delete_category(category_name):
+    category = db.get_or_404(ToolWarningLimit, category_name)
 
+    try:
+        tool_using_category = db.session.execute(
+            db.select(Tool.asset_id)
+            .where(Tool.tool_name == category.tool_name)
+            .limit(1)
+            .with_for_update()
+        ).first()
+
+        if tool_using_category is not None:
+            db.session.rollback()
+            flash(
+                "This category cannot be deleted because tools are still using it. "
+                "Move those tools to another category first.",
+                "error"
+            )
+            return redirect(url_for(
+                "edit_category",
+                category_name=category_name
+            ))
+
+        db.session.delete(category)
+        db.session.commit()
+
+    except (IntegrityError, OperationalError):
+        db.session.rollback()
+        flash("Could not delete the category. Please try again.", "error")
+        return redirect(url_for(
+            "edit_category",
+            category_name=category_name
+        ))
+
+    flash("Tool category deleted successfully.", "success")
+    return redirect(url_for("tool_categories"))
 
 # Issue #44 - Create a new tool category and optional stock warning limit
 @app.route("/tool_categories/add", methods=["GET", "POST"])
