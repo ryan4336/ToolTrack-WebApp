@@ -806,8 +806,12 @@ def report_missing(asset_id):
         tool = get_locked_tool(asset_id)
         active_assignment = get_active_assignment(asset_id, lock=True)
 
-        unresolved_report = (active_assignment is not None and active_assignment.missing_reported_date is not None and active_assignment.missing.resolve_date is None)
-
+        unresolved_report = (
+            active_assignment is not None
+            and active_assignment.missing_reported_date is not None
+            and active_assignment.missing_resolved_date is None
+        )
+        
         if tool is None:
             db.session.rollback()
             flash("This tool could not be found", "error")
@@ -822,22 +826,21 @@ def report_missing(asset_id):
         time_now = utc_time()
         report_date = time_now.strftime("%Y-%m-%d")
 
-        if active_assignment:
-            if active_assignment.missing_reported_date and active_assignment.missing_resolved_date:
-                active_assignment.notes = append_note(active_assignment.notes,
-                    f"[Earlier missing report {active_assignment.missing_reported_date:%Y-%m-%d}], "
-                    f"resolved {active_assignment.missing_resolved_date:%Y-%m-%d}"
-                )
-                active_assignment.missing_resolved_date = None
+        # Create the missing report note
+        report_line = f"[MISSING: {report_date}] Reported missing."
+        if notes:
+            report_line += f" {notes}"
 
+        if active_assignment:
+            # Store the report in the active assignment
             active_assignment.missing_reported_date = time_now
-            if notes:
-                active_assignment.notes = append_note(active_assignment.notes, f"[Missing {report_date}] {notes}")
+            active_assignment.missing_resolved_date = None
+            active_assignment.notes = append_note(
+                active_assignment.notes,
+                report_line
+            )
         else:
-            #there is not active assignment and the associated info is being stored with the tool iteself
-            report_line = f"[Missing {report_date}] Reported missing."
-            if notes:
-                report_line += f" {notes}"
+            # Store the report in the tool if it is not assigned
             tool.notes = append_note(tool.notes, report_line)
 
         tool.status = "Missing"
@@ -871,6 +874,7 @@ def mark_tool_found(asset_id):
     tool = db.get_or_404(Tool, asset_id)
     error = None
     return_url = url_for("tool_details", asset_id=asset_id)
+    active_assignment = get_active_assignment(asset_id)
 
     statuses = [option for option in Tool.__table__.c.status.type.enums if option in allowed_statuses]
     conditions = list(Tool.__table__.c.condition.type.enums)
@@ -881,37 +885,73 @@ def mark_tool_found(asset_id):
 
     if request.method == "POST":
         condition = request.form.get("condition", "")
-        status = request.form.get("status", "")
+        requested_status = request.form.get("status", "")
 
-        if not condition or not status:
-            error = "Pleaes select the tool's current condition and status"
-        elif condition not in conditions:
-            error = "Selected condition is not allowed"
-        elif status not in statuses:
-            error = "Selected status is not allowed"
+        if condition not in conditions:
+            error = "Please select a valid condition."
         else:
             tool = get_locked_tool(asset_id)
+            active_assignment = get_active_assignment(asset_id, lock=True)
 
             if tool is None or tool.status != "Missing":
                 db.session.rollback()
-                flash("This tool cannot be checked in at this time.", "error")
+                flash("This tool cannot be marked found at this time.", "error")
                 return redirect(return_url)
 
-            found_date = utc_time().strftime("%Y-%m-%d")
-            tool.status = status
-            tool.condition = condition
-            tool.notes = append_note(tool.notes, f"[FOUND: {found_date}] Marked Found. CONDITION: {condition}. STATUS: {status}")
-
-            try:
-                db.session.commit()
-            except (IntegrityError, OperationalError):
+            if active_assignment is None and requested_status not in statuses:
                 db.session.rollback()
-                error = "The tool could not be saved at this time. Please try again."
+                error = "Please select a valid tool status."
             else:
-                flash(f"Tool {tool.asset_tag} was marked as found", "success")
-                return redirect(return_url)
+                found_time = utc_time()
+                found_date = found_time.strftime("%Y-%m-%d")
 
-    return render_template("mark_tool_found.html", tool=tool, statuses=statuses, conditions=conditions,return_url=return_url,error=error)
+                # Keep the assignment active if the tool is assigned
+                if active_assignment:
+                    status = "Assigned"
+
+                    # Record when the missing report was resolved
+                    active_assignment.missing_resolved_date = found_time
+
+                else:
+                    status = requested_status
+
+                # Create the found report note
+                found_line = (
+                    f"[FOUND: {found_date}] Marked Found. "
+                    f"CONDITION: {condition}. STATUS: {status}"
+                )
+
+                # Save the note in the correct location
+                if active_assignment:
+                    active_assignment.notes = append_note(
+                        active_assignment.notes,
+                        found_line
+                    )
+                else:
+                    tool.notes = append_note(tool.notes, found_line)
+
+                # Update the tool
+                tool.status = status
+                tool.condition = condition
+
+                try:
+                    db.session.commit()
+                except (IntegrityError, OperationalError):
+                    db.session.rollback()
+                    error = "The tool could not be saved. Please try again."
+                else:
+                    flash(f"Tool {tool.asset_tag} was marked as found.", "success")
+                    return redirect(return_url)
+
+    return render_template(
+        "mark_tool_found.html",
+        tool=tool,
+        statuses=statuses,
+        conditions=conditions,
+        active_assignment=active_assignment,
+        return_url=return_url,
+        error=error
+    )
     
 
 # Display the assignment form for a specific employee

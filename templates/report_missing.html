@@ -28,7 +28,11 @@
 
     <div class="form-group">
         <label for="notes">Notes</label>
-        <textarea id="notes" name="notes" rows="4" placeholder="Last seen, who reported it missing, etc.">{{ request.form.get('notes', tool.notes or '') }}</textarea>
+        <textarea 
+        id="notes" 
+        name="notes" 
+        rows="4" 
+        placeholder="Last seen, who reported it missing, etc.">{{ request.form.get('notes', '') }}</textarea>
     </div>
 
     <button type="submit" class="button">Report Missing</button>

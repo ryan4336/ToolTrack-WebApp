@@ -33,12 +33,21 @@
 
     <div class="form-group">
         <label for="status">Status After Found</label>
-        <select id="status" name="status" required>
-            <option value="">Select Status</option>
-            {% for option in statuses %}
-            <option value ="{{ option }}" {% if request.form.get('status') == option %}selected{% endif %}>{{ option }}</option>
-            {% endfor %}
-        </select>
+
+        {% if active_assignment %}
+            <p>Assigned (automatically selected)</p>
+            <p>The tool will remain assigned to its current employee.</p>
+        {% else %}
+            <select id="status" name="status" required>
+                <option value="">Select Status</option>
+                {% for option in statuses %}
+                    <option value="{{ option }}"
+                        {% if request.form.get('status') == option %}selected{% endif %}>
+                        {{ option }}
+                    </option>
+                {% endfor %}
+            </select>
+        {% endif %}
     </div>
 
     <button type="submit" class="button">Mark Found</button>

@@ -1119,3 +1119,9 @@ body {
 .warning-status-normal {
     color: #5cb85c;
 }
+
+
+/* Tool details notes field */
+.details-notes {
+    white-space: pre-wrap;
+}
