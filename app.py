@@ -706,12 +706,31 @@ def tool_details(asset_id):
         .where(Assignment.asset_id == asset_id)
         .limit(1)
     ).first() is not None
+    
+    # Default to inventory when no assignment page was provided
+    return_url = url_for("tool_inventory")
+    return_label = "Back to Inventory"
 
+    # Return to the assignment that opened this tool
+    assignment_id = request.args.get("assignment_id", type=int)
+
+    if assignment_id is not None:
+        source_assignment = db.session.get(Assignment, assignment_id)
+
+        # Make sure the assignment belongs to this tool
+        if source_assignment and source_assignment.asset_id == tool.asset_id:
+            return_url = url_for(
+                "assignment_details",
+                assignment_id=source_assignment.assignment_id
+            )
+            return_label = "Back to Assignment"
     return render_template(
         "tool_details.html",
         tool=tool,
         active_assignment=active_assignment,
-        has_assignment_history=has_assignment_history
+        has_assignment_history=has_assignment_history,
+        return_url=return_url,
+        return_label=return_label
     )
 
 

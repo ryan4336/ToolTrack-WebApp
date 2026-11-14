@@ -320,6 +320,15 @@ body {
     background-color: #ad080d;
 }
 
+.button-categories {
+    background-color: #1e3a5f;
+    color: white;
+}
+
+.button-categories:hover {
+    background-color: #172d4a;
+}
+
 /* Make blocked delete buttons appear unavailable */
 .button-delete-blocked {
     opacity: 0.45;
@@ -596,7 +605,7 @@ body {
 .dashboard-container {
     max-width: 1300px;
     margin: 0 auto;
-    padding: 30px 20px;
+    padding: 0 20px 30px;
     color: #ffffff;
 }
 
@@ -611,6 +620,7 @@ body {
     font-weight: 700;
     margin-bottom: 8px;
     color: var(--text-dark);
+    margin-top: 0;
 }
 
 .dashboard-header p {
@@ -872,6 +882,38 @@ body {
     background-color: #f8f9fa;
 }
 
+/* Heading and controls above the tool card */
+.tool-details-header {
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.tool-details-header h2 {
+    margin: 0;
+}
+
+/* Arrange tool details buttons with consistent spacing */
+.tool-details-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* Place action icons on the right side of the dark header */
+.tool-details-title-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.tool-details-title-bar h3 {
+    margin: 0;
+    font-size: 20px;
+}
+
 /* Issue #34 - Sortable Table Headers */
 
 .sortable-table th[data-sort-type] {
@@ -1100,7 +1142,8 @@ body {
 }
 
 /* Square icon buttons on the list pages */
-.sticky-table .button-icon {
+.sticky-table .button-icon,
+.tool-details-container .button-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;

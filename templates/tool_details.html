@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_action_icons.html" import action_icon %}
 
 {% block title %}Tool Details - {{ tool.tool_name }}{% endblock %}
 
@@ -7,49 +8,67 @@
     
     <div class="tool-details-header">
         <h2>Tool Details: {{ tool.asset_tag }}</h2>
-        <div style="display: flex; gap: 10px;">
-            {% if tool.status == 'Available' %}
-                <a href="{{ url_for('assign_tool_by_asset', asset_id=tool.asset_id) }}" class="button" style="background-color: #28a745;">Assign Tool</a>
-            {% endif %}
-            
-<a href="{{ url_for('tool_inventory') }}" class="button button-cancel">
-    Back to Inventory
-</a>
 
-<!-- View all assignment history for this tool -->
-<a href="{{ url_for('assignments', asset_id=tool.asset_id) }}"
-   class="button">
-    Assignment History
-</a>
+        <div class="tool-details-actions">
+            <a href="{{ return_url }}" class="button button-cancel">
+                {{ return_label }}
+            </a>
 
-            <!-- If active assignment, allow Check In -->
-            {% if active_assignment %}
-                <a href="{{ url_for('check_in_tool',
-                                    assignment_id=active_assignment.assignment_id,
-                                    source='tool') }}"
-                class="button">
-                    Check In
+            {% if tool.status == "Missing" %}
+                <a href="{{ url_for('mark_tool_found', asset_id=tool.asset_id) }}"
+                   class="button button-assign">
+                    Mark Found
                 </a>
-            {% endif %}
-
-            {% if tool.status == "Missing" %}
-                <button type="button" class="button-disabled" disabled>Report Missing</button>
             {% else %}
-                <a href="{{ url_for('report_missing', asset_id=tool.asset_id) }}" class="button">Report Missing</a>
-            {% endif %}
-            
-            {% if tool.status == "Missing" %}
-                <a href="{{ url_for('mark_tool_found', asset_id=tool.asset_id)}}" class="button">Report Found</a>
-            {% else %}
-                <button type="button" class="button-disabled" disabled>Report Found</button>
+                <a href="{{ url_for('report_missing', asset_id=tool.asset_id) }}"
+                   class="button">
+                    Report Missing
+                </a>
             {% endif %}
         </div>
     </div>
 
     <div class="tool-details-card">
-        <!-- Header -->
+        <!-- Asset tag and action icons -->
         <div class="tool-details-title-bar">
-            <h3 style="margin: 0; font-size: 1.2rem;">{{ tool.asset_tag }}</h3>
+            <h3>{{ tool.asset_tag }}</h3>
+
+            <div class="tool-details-actions">
+                <!-- Edit tool -->
+                <a href="{{ url_for('edit_tool', asset_id=tool.asset_id) }}"
+                   class="button button-small button-icon button-edit"
+                   title="Edit tool"
+                   aria-label="Edit tool {{ tool.asset_tag }}">
+                    {{ action_icon("edit") }}
+                </a>
+
+                <!-- View assignment history -->
+                <a href="{{ url_for('assignments', asset_id=tool.asset_id) }}"
+                   class="button button-small button-icon button-history"
+                   title="View assignment history"
+                   aria-label="View assignment history for {{ tool.asset_tag }}">
+                    {{ action_icon("history") }}
+                </a>
+
+                {% if tool.status == "Available" and not active_assignment %}
+                    <a href="{{ url_for('assign_tool_by_asset', asset_id=tool.asset_id) }}"
+                       class="button button-small button-icon button-assign"
+                       title="Assign tool"
+                       aria-label="Assign tool {{ tool.asset_tag }}">
+                        {{ action_icon("assign") }}
+                    </a>
+
+                {% elif active_assignment and tool.status != "Missing" %}
+                    <a href="{{ url_for('check_in_tool',
+                                        assignment_id=active_assignment.assignment_id,
+                                        source='tool') }}"
+                       class="button button-small button-icon button-check-in"
+                       title="Check in tool"
+                       aria-label="Check in tool {{ tool.asset_tag }}">
+                        {{ action_icon("return") }}
+                    </a>
+                {% endif %}
+            </div>
         </div>
         
         <!-- Data Table -->
