@@ -49,6 +49,7 @@ function filterAssignments() {
 
         // Display only rows that pass all valid checks; hide all if there's a date error
         const matches = matchesSearch && matchesStatus && matchesDate && !hasDateError;
+        row.dataset.filterMatch = String(matches);
         row.hidden = !matches;
 
         if (matches) {
@@ -60,6 +61,12 @@ function filterAssignments() {
     if (noResults) {
         // Hide standard empty message if the error message is already taking precedence
         noResults.hidden = visibleCount !== 0 || hasDateError;
+    }
+
+    const table = document.querySelector(".paginated-table");
+
+    if (table) {
+        table.dispatchEvent(new Event("table-results-changed"));
     }
 }
 

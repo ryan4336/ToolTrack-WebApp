@@ -93,6 +93,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 rows.forEach(function (row) {
                     tbody.appendChild(row);
                 });
+
+                table.dispatchEvent(new Event("table-results-changed"));
             }
 
             header.addEventListener("click", sortColumn);

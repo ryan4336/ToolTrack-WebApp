@@ -40,7 +40,7 @@
 {% if employees %}
 
 <div class="list-table-wrapper">
-    <table class="list-table sortable-table employee-table sticky-table">
+    <table class="list-table sortable-table employee-table sticky-table paginated-table">
         <thead>
     <tr>
         <th data-sort-type="text" class="sticky-left sticky-first sticky-edge">Name</th>
@@ -134,6 +134,7 @@
     <p>No employees have been added yet.</p>
 {% endif %}
 
+<script src="{{ url_for('static', filename='table_pagination.js') }}" defer></script>
 <script src="{{ url_for('static', filename='employees.js') }}" defer></script>
 <script src="{{ url_for('static', filename='table_sort.js') }}" defer></script>
 

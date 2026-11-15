@@ -20,6 +20,7 @@ function filterTools() {
         const matchesStatus = status === "all" || row.dataset.status === status;
         const matchesCondition = condition === "all" || row.dataset.condition === condition;
         const matches = matchesSearch && matchesStatus && matchesCondition;
+        row.dataset.filterMatch = String(matches);
         row.hidden = !matches;
 
         if (matches) {
@@ -29,6 +30,12 @@ function filterTools() {
 
     if(noResults) {
         noResults.hidden = visibleCount !== 0;
+    }
+    
+    const table = document.querySelector(".paginated-table");
+
+    if (table) {
+        table.dispatchEvent(new Event("table-results-changed"));
     }
 }
 

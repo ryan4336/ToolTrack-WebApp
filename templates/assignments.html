@@ -81,7 +81,7 @@
 
 {% if assignments %}
 <div class="list-table-wrapper">
-    <table class="list-table sortable-table sticky-table sticky-table-two-left">
+    <table class="list-table sortable-table sticky-table sticky-table-two-left paginated-table">
         <thead>
             <tr>
                 <th data-sort-type="text" class="sticky-left sticky-first">Employee</th>
@@ -198,6 +198,7 @@
     {% endif %}
 {% endif %}
 
+<script src="{{ url_for('static', filename='table_pagination.js') }}" defer></script>
 <script src="{{ url_for('static', filename='assignments.js') }}" defer></script>
 <script src="{{ url_for('static', filename='table_sort.js') }}" defer></script>
 

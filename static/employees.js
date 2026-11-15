@@ -26,6 +26,7 @@ function filterEmployees() {
 
         // Only display employees that match both searches
         const matches = matchesSearch && matchesStatus;
+        row.dataset.filterMatch = String(matches);
         row.hidden = !matches;
 
         if (matches) {
@@ -35,6 +36,12 @@ function filterEmployees() {
      
     if (noResults) {
         noResults.hidden = visibleCount !== 0;
+    }
+
+    const table = document.querySelector(".paginated-table");
+
+    if (table) {
+        table.dispatchEvent(new Event("table-results-changed"));
     }
 }
 

@@ -62,7 +62,7 @@
 
 {% if tools %}
 <div class="list-table-wrapper">
-    <table class="list-table sortable-table sticky-table"> 
+    <table class="list-table sortable-table sticky-table paginated-table"> 
         
             
 <thead>
@@ -144,6 +144,7 @@
     <p>No tools have been added yet.</p>
 {% endif %}
 
+<script src="{{ url_for('static', filename='table_pagination.js') }}" defer></script>
 <script src="{{ url_for('static', filename='tool_inventory.js') }}" defer></script>
 <script src="{{ url_for('static', filename='table_sort.js') }}" defer></script>
 {% endblock %}

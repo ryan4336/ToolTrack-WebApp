@@ -1221,3 +1221,65 @@ body {
     color: #ffffff;
     cursor: not-allowed;
 }
+
+/* Pagination controls below list tables */
+/* ------------------------------------- */
+/* ------------------------------------- */
+
+.table-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 16px;
+    font-size: 14px;
+}
+
+.table-pagination label,
+.pagination-buttons {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.table-pagination select {
+    padding: 8px 10px;
+    border: 1px solid #aaaaaa;
+    border-radius: 4px;
+    background-color: #ffffff;
+    font: inherit;
+}
+
+.pagination-summary {
+    color: #555555;
+}
+
+.table-pagination .button:disabled,
+.table-pagination .button:disabled:hover {
+    background-color: #dddddd;
+    color: #555555;
+    cursor: not-allowed;
+}
+
+/* Keep hidden rows out of the table layout */
+.paginated-table tbody tr[hidden] {
+    display: none !important;
+}
+
+/* Alternate colors based on visible rows after filtering */
+.paginated-table tbody tr:not(.page-row-even),
+.paginated-table tbody tr:not(.page-row-even) td {
+    background-color: #ffffff;
+}
+
+.paginated-table tbody tr.page-row-even,
+.paginated-table tbody tr.page-row-even td {
+    background-color: #f7f7f7;
+}
+
+.paginated-table tbody tr:hover,
+.paginated-table tbody tr:hover td {
+    background-color: #eeeeee;
+}
