@@ -22,9 +22,11 @@
 
 <form method="POST" action="{{ url_for('mark_tool_found', asset_id=tool.asset_id )}}">
     <div class="form-group">
-        <label for="conditoin">Condition</label>
+        <label for="condition">
+            Condition <span class="required-marker">*</span>
+        </label>
         <select id="condition" name="condition" required>
-            <option vlaue="">Select Condition</option>
+            <option value="">Select Condition</option>
             {% for option in conditions %}
             <option value="{{ option }}" {% if request.form.get('condition') == option %}selected{% endif %}>{{ option }}</option>
             {% endfor %}
@@ -32,7 +34,12 @@
     </div>
 
     <div class="form-group">
-        <label for="status">Status After Found</label>
+        <label for="status">
+            Status After Found
+            {% if not active_assignment %}
+                <span class="required-marker">*</span>
+            {% endif %}
+        </label>
 
         {% if active_assignment %}
             <p>Assigned (automatically selected)</p>

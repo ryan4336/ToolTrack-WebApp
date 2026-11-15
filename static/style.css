@@ -1283,3 +1283,8 @@ body {
 .paginated-table tbody tr:hover td {
     background-color: #eeeeee;
 }
+
+.required-marker {
+    color: #ad080d;
+    margin-left: 3px;
+}

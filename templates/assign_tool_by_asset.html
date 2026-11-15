@@ -19,7 +19,9 @@
     <form method="POST">
         <!-- 1. Select the Employee -->
         <div class="form-group">
-            <label for="employee_id">Assign To Employee*</label>
+            <label for="employee_id">
+                Assign To Employee <span class="required-marker">*</span>
+            </label>
             <select name="employee_id" id="employee_id" required>
                 <option value="">-- Select an Employee --</option>
                 {% for emp in employees %}
@@ -40,7 +42,9 @@
         </div>
 
         <div class="form-group">
-            <label for="condition_when_assigned">Condition at Checkout*</label>
+            <label for="condition_when_assigned">
+                Condition at Checkout <span class="required-marker">*</span>
+            </label>
             <select name="condition_when_assigned" id="condition_when_assigned" required>
                 <option value="New" {% if tool.condition == 'New' %}selected{% endif %}>New</option>
                 <option value="Good" {% if tool.condition == 'Good' %}selected{% endif %}>Good</option>

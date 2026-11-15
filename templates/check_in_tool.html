@@ -19,7 +19,9 @@
     <p><strong>Email:</strong> {{ employee.email }}</p>
 
     <div class="form-group">
-        <label for="condition_when_returned">Condition When Returned</label>
+        <label for="condition_when_returned">
+            Condition When Returned <span class="required-marker">*</span>
+        </label>
 
         <select id="condition_when_returned"
                 name="condition_when_returned"
@@ -39,7 +41,9 @@
     </div>
 
     <div class="form-group">
-        <label for="status">Tool Status After Return</label>
+        <label for="status">
+            Tool Status After Return <span class="required-marker">*</span>
+        </label>
 
         <select id="status" name="status" required>
             <option value="">Select a status</option>

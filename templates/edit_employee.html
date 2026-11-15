@@ -31,14 +31,18 @@
 <form method="POST" class="form">
 
     <div class="form-group">
-        <label for="name">Name</label>
+        <label for="name">
+            Name <span class="required-marker">*</span>
+        </label>
         <input type="text" id="name" name="name"
                value="{{ request.form.get('name', employee.name) }}"
                maxlength="150" required>
     </div>
 
     <div class="form-group">
-        <label for="email">Email</label>
+        <label for="email">
+            Email <span class="required-marker">*</span>
+        </label>
         <input type="email" id="email" name="email"
                value="{{ request.form.get('email', employee.email) }}"
                maxlength="254" required>
@@ -52,7 +56,9 @@
     </div>
 
     <div class="form-group">
-        <label for="job_title">Job Title</label>
+        <label for="job_title">
+            Job Title <span class="required-marker">*</span>
+        </label>
         <input type="text" id="job_title" name="job_title"
                value="{{ request.form.get('job_title', employee.job_title) }}"
                maxlength="100" required>

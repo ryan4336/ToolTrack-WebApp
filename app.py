@@ -632,7 +632,7 @@ def add_tool():
         condition = request.form.get("condition", "") #required
         notes = request.form.get("notes", "").strip()
 
-        if not all([tool_name, asset_tag, purchase_date, price, status, condition]):
+        if not all([tool_name, asset_tag, status, condition]):
             error = "Please fill in all required fields"
 
         elif tool_name not in tool_names:
@@ -645,15 +645,28 @@ def add_tool():
 
         else: 
             try:
-                purchase_date = datetime.strptime(purchase_date, "%Y-%m-%d").date()
+                purchase_date = (
+                    date.fromisoformat(purchase_date)
+                    if purchase_date else None
+                )
             except ValueError:
                 error = "Enter a valid purchase date"
             if not error:
                 try:
-                    price = round(float(price), 2)
-                    if not (0 <= price <= 999999.99):
-                        raise ValueError
-                except ValueError:
+                    if price:
+                        price = Decimal(price)
+
+                        if not price.is_finite():
+                            raise ValueError
+
+                        if not (Decimal("0") <= price <= Decimal("999999.99")):
+                            raise ValueError
+
+                        price = price.quantize(Decimal("0.01"))
+                    else:
+                        price = None
+
+                except (ValueError, InvalidOperation):
                     error = "Enter a price between $0 and $999,999.99"
 
             if not error:
@@ -755,40 +768,105 @@ def edit_tool(asset_id):
         purchase_date = request.form.get("purchase_date", "").strip()
         price = request.form.get("price", "").strip()
         condition = request.form.get("condition", "").strip()
+        status = request.form.get("status", "").strip()
         notes = request.form.get("notes", "").strip()
 
-        if not tool_name or not asset_tag or not purchase_date or not price:
+        if not tool_name or not asset_tag:
             error = "Please fill out all required fields"
         elif tool_name not in tool_names:
             error = "Please select a valid tool category"
         elif condition not in ("New", "Good", "Fair", "Poor", "Unknown"):
             error = "Please select a valid condition"
+        elif (tool.status in allowed_statuses and status not in allowed_statuses):
+            error = "Please select a valid status"
         else:
             try:
-                purchase_date = date.fromisoformat(purchase_date)
-                price = round(float(price), 2)
-                if not (0 <= price <= 999999.99):
-                    raise ValueError
-            except ValueError:
-                error = "Enter a valid purchase date and a price between $0 and $999,999.99"
-            else:
-                tool.tool_name = tool_name
-                tool.brand = brand or None
-                tool.model = model or None
-                tool.asset_tag = asset_tag
-                tool.serial_number = serial_number or None
-                tool.purchase_date = purchase_date
-                tool.price = price
-                tool.condition = condition
-                tool.notes = notes or None
+                purchase_date = (
+                    date.fromisoformat(purchase_date)
+                    if purchase_date else None
+                )
 
+                if price:
+                    price = Decimal(price)
+
+                    if not price.is_finite():
+                        raise ValueError
+
+                    if not (Decimal("0") <= price <= Decimal("999999.99")):
+                        raise ValueError
+
+                    price = price.quantize(Decimal("0.01"))
+                else:
+                    price = None
+
+            except (ValueError, InvalidOperation):
+                error = (
+                    "Enter a valid purchase date and a price between "
+                    "$0 and $999,999.99, or leave those fields blank."
+                )
+            else:
                 try:
-                    db.session.commit()
+                    # Lock and refresh the tool before changing its values
+                    tool = db.session.execute(
+                        db.select(Tool)
+                        .where(Tool.asset_id == asset_id)
+                        .with_for_update()
+                        .execution_options(populate_existing=True)
+                    ).scalar_one_or_none()
+
+                    if tool is None:
+                        db.session.rollback()
+                        flash("This tool no longer exists.", "error")
+                        return redirect(url_for("tool_inventory"))
+
+                    # Recheck the submitted status against the current record
+                    if tool.status in allowed_statuses:
+                        if status not in allowed_statuses:
+                            error = (
+                                "The tool's status may have changed. Reload the page and select a valid status."
+                            )
+                        else:
+                            active_assignment = get_active_assignment(
+                                asset_id, lock=True
+                            )
+
+                            if active_assignment:
+                                error = (
+                                    "This tool has an active assignment. Check it in before changing its status."
+                                )
+
+                    elif status:
+                        error = (
+                            "This tool is now assigned or missing. Reload the page and use Check In or Mark Found to change its status."
+                        )
+
+                    if error:
+                        db.session.rollback()
+                    else:
+                        tool.tool_name = tool_name
+                        tool.brand = brand or None
+                        tool.model = model or None
+                        tool.asset_tag = asset_tag
+                        tool.serial_number = serial_number or None
+                        tool.purchase_date = purchase_date
+                        tool.price = price
+                        tool.condition = condition
+                        tool.notes = notes or None
+
+                        if tool.status in allowed_statuses:
+                            tool.status = status
+
+                        db.session.commit()
+                        return redirect(url_for("tool_inventory"))
+
                 except IntegrityError:
                     db.session.rollback()
-                    error = "Could not save, that asset tag may currently be in use"
-                else:
-                    return redirect(url_for("tool_inventory"))
+                    error = (
+                        "Could not save. That asset tag may already be in use."
+                    )
+                except OperationalError:
+                    db.session.rollback()
+                    error = "Could not save the tool. Please try again."
     return render_template("edit_tools.html", tool=tool, error=error, tool_names=tool_names)
 
 #Report missing route

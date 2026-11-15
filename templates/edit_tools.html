@@ -13,7 +13,9 @@
 <form method="POST" class="form" id="edit-tool-form">
 
     <div class="form-group">
-        <label for="asset_tag">Asset Tag</label>
+        <label for="asset_tag">
+            Asset Tag <span class="required-marker">*</span>
+        </label>
         <input type="text" id="asset_tag" name="asset_tag"
             value="{{ request.form.get('asset_tag', tool.asset_tag) }}"
             maxlength="50" required>
@@ -21,7 +23,9 @@
     
     <!-- Select an existing tool name -->
     <div class="form-group">
-        <label for="tool_name">Tool Category</label>
+        <label for="tool_name">
+            Tool Category <span class="required-marker">*</span>
+        </label>
         <select id="tool_name" name="tool_name" required>
             <option value="" disabled>
                 Select a Tool Category
@@ -60,27 +64,64 @@
     </div>
 
 
-    <div class="form-group">
+     <div class="form-group">
         <label for="purchase_date">Purchase Date</label>
-        <input type="date" id="purchase_date" name="purchase_date"
-            value="{{ request.form.get('purchase_date', tool.purchase_date) }}"
-            required>
+        <input type="date"
+               id="purchase_date"
+               name="purchase_date"
+               value="{{ request.form.get('purchase_date', tool.purchase_date.isoformat() if tool.purchase_date else '') }}">
     </div>
 
     <div class="form-group">
         <label for="price">Purchase Price</label>
-        <input type="number" id="price" name="price"
-            value="{{ request.form.get('price', tool.price if tool.price is not none else '') }}"
-            min="0" step="0.01" required>
+        <input type="number"
+               id="price"
+               name="price"
+               value="{{ request.form.get('price', tool.price if tool.price is not none else '') }}"
+               min="0"
+               max="999999.99"
+               step="0.01">
+    </div>
+
+     <div class="form-group">
+        <label for="status">
+            Status
+            {% if tool.status in ["Available", "Damaged", "Under Repair"] %}
+                <span class="required-marker">*</span>
+            {% endif %}
+        </label>
+
+        {% if tool.status in ["Available", "Damaged", "Under Repair"] %}
+            {% set selected_status = request.form.get("status", tool.status) %}
+
+            <select id="status" name="status" required>
+                {% for option in ["Available", "Damaged", "Under Repair"] %}
+                    <option value="{{ option }}"
+                            {% if selected_status == option %}selected{% endif %}>
+                        {{ option }}
+                    </option>
+                {% endfor %}
+            </select>
+        {% else %}
+            <input type="text"
+                   id="status"
+                   value="{{ tool.status }}"
+                   disabled>
+
+            <small>
+                {% if tool.status == "Missing" %}
+                    Mark this tool as found from Tool Details to change its status.
+                {% else %}
+                    Check this tool in to change its status.
+                {% endif %}
+            </small>
+        {% endif %}
     </div>
 
     <div class="form-group">
-        <label for="status">Status</label>
-        <input type="text" id="status" value="{{ tool.status }}" disabled>
-    </div>
-
-    <div class="form-group">
-        <label for="condition">Condition</label>
+        <label for="condition">
+            Condition <span class="required-marker">*</span>
+        </label>
         {% set condition_value = request.form.get('condition', tool.condition ) %}
         <select id="condition" name="condition" required>
             {% for option in ['New', 'Good', 'Fair', 'Poor', 'Unknown'] %}

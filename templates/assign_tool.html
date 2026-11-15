@@ -19,7 +19,9 @@
 
     <!-- Asset tags distinguish tools that have the same name -->
     <div class="form-group">
-        <label for="asset-id">Tool</label>
+        <label for="asset-id">
+            Tool <span class="required-marker">*</span>
+        </label>
         <select id="asset-id" name="asset_id" required>
             <option value="">Select a tool</option>
 
@@ -49,7 +51,9 @@
 
     <!-- Automatically select the tool's condition -->
     <div class="form-group">
-        <label for="condition">Condition When Assigned</label>
+        <label for="condition">
+            Condition When Assigned <span class="required-marker">*</span>
+        </label>
         <select id="condition" name="condition_when_assigned" required>
             <option value="">Select a condition</option>
             <option value="New">New</option>
@@ -65,7 +69,6 @@
     </div>
 
     <div class="form-actions">
-        <!-- Disabled until the database-saving code is added -->
         <a href="{{ url_for('employees') }}" class="button button-cancel">
             Cancel
         </a>
