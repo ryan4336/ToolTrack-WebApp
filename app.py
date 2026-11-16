@@ -1874,6 +1874,18 @@ def import_tools():
         tools_to_add = []
         csv_asset_tags = set()
         csv_serial_numbers = set()
+        
+        # Get existing tool categories
+        existing_categories = db.session.scalars(
+            db.select(ToolWarningLimit.tool_name)
+        ).all()
+
+        # Track categories without case sensitivity
+        category_names = {
+            name.casefold(): name for name in existing_categories
+        }
+
+        new_categories = []
 
         # Load existing identifiers once instead of querying
         # the database separately for every CSV row.
@@ -1945,7 +1957,24 @@ def import_tools():
                 csv_serial_numbers.add(serial_number)
 
             csv_asset_tags.add(asset_tag)
+            
+            # Check whether this tool category already exists
+            category_key = tool_name.casefold()
 
+            if category_key not in category_names:
+
+                # Register a new category with no warning limit
+                category_names[category_key] = tool_name
+
+                new_categories.append(
+                    ToolWarningLimit(
+                        tool_name=tool_name,
+                        warning_limit=None
+                    )
+                )
+
+            # Use the registered category name
+            tool_name = category_names[category_key]
             tool = Tool(
                 asset_tag=asset_tag,
                 tool_name=tool_name,
@@ -1961,12 +1990,14 @@ def import_tools():
 
             tools_to_add.append(tool)
 
-        # Insert all tools in one transaction
+        # Insert all tools and categories in one transaction
+        db.session.add_all(new_categories)
         db.session.add_all(tools_to_add)
         db.session.commit()
 
         flash(
-            f"Successfully imported {len(tools_to_add)} tools.",
+            f"Successfully imported {len(tools_to_add)} tools "
+            f"and created {len(new_categories)} new categories.",
             "success"
         )
 
