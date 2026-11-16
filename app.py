@@ -153,6 +153,20 @@ class Assignment(db.Model):
 # ----------HELPER FUNCTIONS---------
 # -----------------------------------
 
+def is_last_active_admin(employee_id):
+    # Lock active admin records until this transaction finishes.
+    admin_ids = db.session.execute(
+        db.select(Employee.employee_id)
+        .where(
+            Employee.admin.is_(True),
+            Employee.active.is_(True)
+        )
+        .order_by(Employee.employee_id)
+        .with_for_update()
+    ).scalars().all()
+
+    return admin_ids == [employee_id]
+
 def send_admin_email(employee_email, temp_password):
     sender_email = os.getenv("SEND_EMAIL_ADDRESS")
     app_password = os.getenv("SEND_EMAIL_PASS")
@@ -178,7 +192,7 @@ def send_admin_email(employee_email, temp_password):
     ToolTrack
 """)
 
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=15) as smtp:
         smtp.login(sender_email, app_password)
         smtp.send_message(message)
 
@@ -198,6 +212,7 @@ def prevent_caching(response):
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"
     return response
+
 def login_required(f):
     @wraps(f)
     def admin_verification(*args, **kwargs):
@@ -259,13 +274,20 @@ def append_note(existing_notes, new_note):
 #find active tool assignment (for reporting missing)
 def get_active_assignment(asset_id, lock=False):
     query = db.select(Assignment).where(Assignment.asset_id == asset_id, Assignment.active.is_(True))
-    if lock: 
-        query = query.with_for_update()
+    if lock:
+        query = query.with_for_update().execution_options(
+            populate_existing=True
+        )
     return db.session.execute(query).scalars().first()
 
 #lock tool so the same tool can't get reported missing twice 
 def get_locked_tool(asset_id):
-    return db.session.execute(db.select(Tool).where(Tool.asset_id == asset_id).with_for_update()).scalar_one_or_none()
+    return db.session.execute(
+        db.select(Tool)
+        .where(Tool.asset_id == asset_id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    ).scalar_one_or_none()
 
 #check admin status
 def current_admin():
@@ -322,7 +344,7 @@ def login():
             mydb.close()
 
         # Make sure account and password hash exist before using bcrypt
-        if admin and admin[1]:
+        if admin and admin[1] and len(password.encode("utf-8")) <= 72:
             stored_hash = admin[1]
 
             # Convert string hash to bytes if necessary
@@ -518,6 +540,16 @@ def edit_employee(employee_id):
         was_admin = employee.admin
         if not name or not email or not job_title:
             error = "Name, email, and job title are required."
+        elif (
+            (not admin or not active)
+            and is_last_active_admin(employee_id)
+        ):
+            db.session.rollback()
+            error = (
+                "This is the last active administrator. "
+                "Give another active employee admin access before "
+                "removing this account's admin access or marking it inactive."
+            )
         else:
             try:
                 # Validate the phone number and add consistent dashes
@@ -541,16 +573,28 @@ def edit_employee(employee_id):
                         random_password.encode('utf-8'),
                         bcrypt.gensalt()
                     ).decode('utf-8')
-                    send_admin_email(employee.email, random_password)
-                    flash("Admin access granted. A temporary password has been sent to the employee's email.", "success")
+                    
                 try:
-                    # Save the changes to the db
+                    if not was_admin and admin:
+                        send_admin_email(email, random_password)
+
                     db.session.commit()
+                except (smtplib.SMTPException, OSError):
+                    db.session.rollback()
+                    error = (
+                        "The temporary-password email could not be sent. "
+                        "Employee changes were not saved. Please try again."
+                    )
                 except IntegrityError:
-                    # Undo the attempted changes if db rejects them
                     db.session.rollback()
                     error = "Could not save. That email may already be in use."
                 else:
+                    if not was_admin and admin:
+                        flash(
+                            "Admin access granted. The temporary-password "
+                            "email was accepted by the email server.",
+                            "success"
+                        )
                     return redirect(url_for("employees"))
 
     # Check whether this employee has any assignment history
@@ -902,6 +946,18 @@ def report_missing(asset_id):
 
         tool = get_locked_tool(asset_id)
         active_assignment = get_active_assignment(asset_id, lock=True)
+        
+        if assignment_id and (
+            active_assignment is None
+            or active_assignment.assignment_id != assignment_id
+        ):
+            db.session.rollback()
+            flash(
+                "This assignment is no longer active. "
+                "Refresh the page before reporting the tool missing.",
+                "error"
+            )
+            return redirect(return_url)
 
         unresolved_report = (
             active_assignment is not None
@@ -1194,6 +1250,7 @@ def assign_tool_by_asset(asset_id):
                 db.select(Tool)
                 .where(Tool.asset_id == asset_id)
                 .with_for_update()
+                .execution_options(populate_existing=True)
             ).scalar_one_or_none()
 
             # Check for an existing active assignment
@@ -1622,8 +1679,17 @@ def change_password():
         # Validate the form inputs
         if not current_password or not new_password or not confirm_password:
             flash("All fields are required.", "error")
+        elif len(new_password) < 8:
+            flash("New password must be at least 8 characters.", "error")
+        elif len(new_password.encode("utf-8")) > 72:
+            flash(
+                "New password is too long. Please use a shorter password.",
+                "error"
+            )
         elif new_password != confirm_password:
             flash("New password and confirmation do not match.", "error")
+        elif len(current_password.encode("utf-8")) > 72:
+            flash("Current password is incorrect.", "error")
         elif not bcrypt.checkpw(current_password.encode('utf-8'), user.password_hash.encode('utf-8')):
             flash("Current password is incorrect.", "error")
         else:
@@ -1642,6 +1708,15 @@ def change_password():
 @login_required
 def delete_employee(employee_id):
     employee = db.get_or_404(Employee, employee_id)
+    
+    if is_last_active_admin(employee_id):
+        db.session.rollback()
+        flash(
+            "The last active administrator cannot be deleted. "
+            "Give another active employee admin access first.",
+            "error"
+        )
+        return redirect(url_for("edit_employee", employee_id=employee_id))
 
     # Check all assignments, including completed assignments
     has_assignment_history = db.session.execute(
