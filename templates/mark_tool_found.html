@@ -3,24 +3,26 @@
 {% block title %}Report Tool Found | ToolTrack{% endblock %}
 
 {% block content %}
-    <h1 class="form-title">Report Tool Found</h1>
+<h1 class="form-title">Report Tool Found</h1>
 
-    <!-- Show an error if required information is missing or saving fails -->
+<form method="POST"
+      action="{{ url_for('mark_tool_found', asset_id=tool.asset_id) }}"
+      class="form">
+
     {% if error %}
         <p class="form-error">{{ error }}</p>
     {% endif %}
-    
-    <div class="form-group">
-        <p><strong>Asset Tag:</strong>{{ tool.asset_tag }}</p>
-        <p><strong>Tool Category:</strong>{{ tool.tool_name }}</p>
-        <p><strong>Brand:</strong>{{ tool.brand }}</p>
-        <p><strong>Model:</strong>{{ tool.model }}</p>
-        <p><strong>Serial Number:</strong>{{ tool.serial_number }}</p>
-        <p><strong>Current Status:</strong>{{ tool.status }}</p>
-        <p><strong>Last Known Condition:</strong>{{ tool.condition }}</p>
+
+    <div class="assignment-employee">
+        <p><strong>Asset Tag:</strong> {{ tool.asset_tag }}</p>
+        <p><strong>Tool Category:</strong> {{ tool.tool_name }}</p>
+        <p><strong>Brand:</strong> {{ tool.brand or "—" }}</p>
+        <p><strong>Model:</strong> {{ tool.model or "—" }}</p>
+        <p><strong>Serial Number:</strong> {{ tool.serial_number or "—" }}</p>
+        <p><strong>Current Status:</strong> {{ tool.status }}</p>
+        <p><strong>Last Known Condition:</strong> {{ tool.condition }}</p>
     </div>
 
-<form method="POST" action="{{ url_for('mark_tool_found', asset_id=tool.asset_id )}}">
     <div class="form-group">
         <label for="condition">
             Condition <span class="required-marker">*</span>
@@ -28,28 +30,27 @@
         <select id="condition" name="condition" required>
             <option value="">Select Condition</option>
             {% for option in conditions %}
-            <option value="{{ option }}" {% if request.form.get('condition') == option %}selected{% endif %}>{{ option }}</option>
+                <option value="{{ option }}"
+                        {% if request.form.get('condition') == option %}selected{% endif %}>
+                    {{ option }}
+                </option>
             {% endfor %}
         </select>
     </div>
 
     <div class="form-group">
-        <label for="status">
-            Status After Found
-            {% if not active_assignment %}
-                <span class="required-marker">*</span>
-            {% endif %}
-        </label>
-
         {% if active_assignment %}
-            <p>Assigned (automatically selected)</p>
+            <p><strong>Status After Found:</strong> Assigned</p>
             <p>The tool will remain assigned to its current employee.</p>
         {% else %}
+            <label for="status">
+                Status After Found <span class="required-marker">*</span>
+            </label>
             <select id="status" name="status" required>
                 <option value="">Select Status</option>
                 {% for option in statuses %}
                     <option value="{{ option }}"
-                        {% if request.form.get('status') == option %}selected{% endif %}>
+                            {% if request.form.get('status') == option %}selected{% endif %}>
                         {{ option }}
                     </option>
                 {% endfor %}
@@ -57,7 +58,14 @@
         {% endif %}
     </div>
 
-    <button type="submit" class="button">Mark Found</button>
-    <a href="{{ return_url }}" class="button">Cancel</a>
+    <div class="form-actions">
+        <a href="{{ return_url }}" class="button button-cancel">
+            Cancel
+        </a>
+
+        <button type="submit" class="button button-assign">
+            Mark Found
+        </button>
+    </div>
 </form>
 {% endblock %}

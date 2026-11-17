@@ -33,8 +33,9 @@ app.config["SQLALCHEMY_DATABASE_URI"] = URL.create(
     database=os.getenv("DB_NAME")
 )
 
-# Use the Aiven certificate to verify the database server
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_pre_ping": True,
+    "pool_recycle": 1800,
     "connect_args": {
         "ssl_ca": os.getenv("DB_SSL_CA"),
         "ssl_verify_cert": True,

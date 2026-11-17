@@ -120,15 +120,26 @@
                             aria-label="Assign tool {{ tool.asset_tag }}">
                                 {{ action_icon("assign") }}
                             </a>
-                        {% elif assignment_id is not none %}
-                            <a href="{{ url_for('check_in_tool',
-                                                assignment_id=assignment_id,
-                                                source='inventory') }}"
-                            class="button button-small button-icon button-check-in"
-                            title="Check in tool"
-                            aria-label="Check in tool {{ tool.asset_tag }}">
-                                {{ action_icon("return") }}
-                            </a>
+                                                {% elif assignment_id is not none %}
+                            {% if tool.status == "Missing" %}
+                                <span title="Mark the tool as found before checking it in.">
+                                    <button type="button"
+                                            class="button button-small button-icon button-check-in"
+                                            aria-label="Check in unavailable: mark tool {{ tool.asset_tag }} as found first"
+                                            disabled>
+                                        {{ action_icon("return") }}
+                                    </button>
+                                </span>
+                            {% else %}
+                                <a href="{{ url_for('check_in_tool',
+                                                    assignment_id=assignment_id,
+                                                    source='inventory') }}"
+                                   class="button button-small button-icon button-check-in"
+                                   title="Check in tool"
+                                   aria-label="Check in tool {{ tool.asset_tag }}">
+                                    {{ action_icon("return") }}
+                                </a>
+                            {% endif %}
                         {% endif %}
                     </div>
                 </td>

@@ -24,23 +24,26 @@
 <div class="assignment-actions">
 
     <a href="{{ url_for('edit_assignment', assignment_id=assignment.assignment_id) }}"
-       class="button">
-        Edit
+        class="button button-small button-icon button-edit"
+        title="Edit assignment">
+        {{ action_icon("edit") }}
     </a>
 
     {% if tool.status == "Missing" %}
-        <button type="button"
-                class="button button-check-in"
-                title="Mark the tool as found before checking it in."
-                disabled>
-            Check In
-        </button>
+        <span title="Mark the tool as found before checking it in.">
+            <button type="button"
+                    class="button button-small button-icon button-check-in"
+                    disabled>
+                {{ action_icon("return") }}
+            </button>
+        </span>
     {% else %}
         <a href="{{ url_for('check_in_tool',
                             assignment_id=assignment.assignment_id,
                             source='details') }}"
-           class="button button-check-in">
-            Check In
+           class="button button-small button-icon button-check-in"
+           title="Check in tool">
+            {{ action_icon("return") }}
         </a>
     {% endif %}
 

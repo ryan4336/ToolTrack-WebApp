@@ -4,11 +4,12 @@
 
 {% block content %}
 <div class="form">
-    <h1 class="form-title">Assign Tool: {{ tool.asset_tag }}</h1>
+    <h1 class="form-title">Assign Tool</h1>
     
     <!-- Display Tool Information -->
-    <div class="assignment-employee" style="background-color: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #ddd; margin-bottom: 24px;">
-        <p><strong>Name:</strong> {{ tool.tool_name }}</p>
+    <div class="assignment-employee">
+        <p><strong>Asset tag:</strong> {{ tool.asset_tag }}</p>
+        <p><strong>Category:</strong> {{ tool.tool_name }}</p>
         <p><strong>Condition:</strong> {{ tool.condition }}</p>
     </div>
 
@@ -60,7 +61,7 @@
 
         <div class="form-actions">
             <a href="{{ url_for('tool_inventory') }}" class="button button-cancel">Cancel</a>
-            <button type="submit" class="button">Confirm Assignment</button>
+            <button type="submit" class="button button-save">Confirm Assignment</button>
         </div>
     </form>
 </div>

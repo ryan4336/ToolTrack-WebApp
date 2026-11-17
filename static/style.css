@@ -313,11 +313,12 @@ body {
 }
 .button-delete {
     display: block;
-    background-color: #dc3545; 
+    background-color: var(--hulett-red);
     margin-left: auto;
 }
-.button-delete:hover{
-    background-color: #ad080d;
+
+.button-delete:hover {
+    background-color: #87060a;
 }
 
 .button-categories {
@@ -337,7 +338,7 @@ body {
 
 /* Override previous hover effect */
 .button-delete-blocked:hover {
-    background-color: #dc3545;
+    background-color: var(--hulett-red);
 }
 
 /* Disabled check-in button styling */
@@ -377,12 +378,13 @@ body {
     background-color: #78350f;
 }
 
-/* Assign tool - green */
-.button-assign {
+.button-assign,
+.button-save {
     background-color: #15803d;
 }
 
-.button-assign:hover {
+.button-assign:hover,
+.button-save:hover {
     background-color: #166534;
 }
 
@@ -531,8 +533,13 @@ body {
 /* ADDITIONAL STYLING FOR ASSIGN_TOOL.html */ 
 /* Separate the employee details from the assignment fields */
 .assignment-employee {
+    background-color: #f8f9fa; 
+    padding: 15px; 
+    border-radius: 6px; 
+    border: 1px solid #ddd; 
     margin-bottom: 24px;
 }
+
 .assignment-employee p {
     margin: 0 0 8px;
 }
@@ -826,7 +833,7 @@ body {
 /* Center the tool details and limit the page width */
 .tool-details-container {
     max-width: 800px;
-    margin: 40px auto;
+    margin: auto;
     padding: 20px;
 }
 
@@ -835,7 +842,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 /* Give the details card rounded corners and a subtle shadow */
@@ -1288,3 +1295,4 @@ body {
     color: #ad080d;
     margin-left: 3px;
 }
+
